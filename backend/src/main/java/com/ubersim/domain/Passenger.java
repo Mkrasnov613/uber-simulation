@@ -3,6 +3,8 @@ package com.ubersim.domain;
 import com.ubersim.enums.PassengerStatus;
 import lombok.*;
 
+import java.util.UUID;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -27,7 +29,7 @@ public class Passenger {
     }
 
     public void incrementWait() {
-        this.waitingTicks++
+        this.waitingTicks++;
     }
 
     public void matchToTrip(String tripId) {
@@ -43,5 +45,8 @@ public class Passenger {
     public void abandon() {
         this.currentTripId = null;
         this.status = PassengerStatus.ABANDONED;
+    }
+    public void AssignUUID(){
+        this.id = UUID.randomUUID().toString();
     }
 }

@@ -3,6 +3,10 @@ package com.ubersim.domain;
 import com.ubersim.enums.DriverStatus;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -18,8 +22,8 @@ public class Driver {
     private double totalEarnings;
     private String currentTripId;
 
-    public Boolean isAvailable() {
-        return status == DriverStatus.AVAILABLE;
+    public void isAvailable() {
+        this.status = DriverStatus.AVAILABLE;
     }
 
     public void assignToTrip(String tripId) {
@@ -42,5 +46,20 @@ public class Driver {
 
     public void updateRating(double newRating){
 
+    }
+    public static String randomName(int n){
+        List<String> nameList = new ArrayList<>();
+        nameList = List.of("Jan", "Anna", "Piotr", "Maria", "Krzysztof",
+                "Katarzyna", "Paweł", "Małgorzata", "Tomasz", "Agnieszka",
+                "Michał", "Barbara", "Marcin", "Krystyna", "Jakub"
+        );//List of predefined names
+        int counter = n % nameList.size();
+        return nameList.get(counter);
+    }
+    public Driver(String name){
+        this.name = name;
+    }
+    public void AssignUUID(){
+        this.id = UUID.randomUUID().toString();
     }
 }
