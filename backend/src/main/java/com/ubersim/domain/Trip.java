@@ -1,15 +1,18 @@
 package com.ubersim.domain;
 
+import com.ubersim.domain.base.SimulationEntity;
 import com.ubersim.enums.TripStatus;
 
+import com.ubersim.interfaces.Stateful;
 import lombok.*;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Builder
 @NoArgsConstructor
-public class Trip {
+@AllArgsConstructor
+public class Trip extends SimulationEntity implements Stateful<TripStatus> {
 
-    private String id;
     private String driverId;
     private String passengerId;
     private TripStatus status;
@@ -28,11 +31,11 @@ public class Trip {
     }
 
     public int getWaitDuration() {
-        return matchedAtTick == 0 ? 0 : matchedAtTick - requestedAtTick
+        return matchedAtTick == 0 ? 0 : matchedAtTick - requestedAtTick;
     }
 
     public int getTripDuration() {
-        return (startedAtTick == 0 || completedAtTick == 0) ? 0 : completedAtTick - startedAtTick
+        return (startedAtTick == 0 || completedAtTick == 0) ? 0 : completedAtTick - startedAtTick;
     }
 
     public void match(int tick) {
@@ -41,7 +44,7 @@ public class Trip {
     }
 
     public void driverEnRoute() {
-        this.status = TripStatus.DRIVER_ARRIVING
+        this.status = TripStatus.DRIVER_ARRIVING;
     }
 
     public void start(int tick) {
@@ -51,7 +54,7 @@ public class Trip {
 
     // TODO: decide what formula we use to calculate fare
     public double calculateFare() {
-
+        return 0.0;
     }
 
     public void complete(int tick) {
@@ -61,7 +64,7 @@ public class Trip {
     }
 
     public void cancel() {
-        this.status = TripStatus.CANCELLED
+        this.status = TripStatus.CANCELLED;
     }
 
 }

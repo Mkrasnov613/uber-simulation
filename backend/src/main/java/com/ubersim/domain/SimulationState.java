@@ -1,7 +1,9 @@
 package com.ubersim.domain;
 
 import lombok.*;
+import com.ubersim.engine.SimulationConfig;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -18,7 +20,7 @@ public class SimulationState {
     private SimulationStats stats;
 
     public List<Driver> getAvailableDrivers() {
-        return new ArrayListM<>();
+        return new ArrayList<>();
     }
 
     public List<Passenger> getWaitingPassengers() {
