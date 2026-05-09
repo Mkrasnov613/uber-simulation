@@ -5,10 +5,10 @@ import com.ubersim.enums.TripStatus;
 
 import com.ubersim.interfaces.Stateful;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Trip extends SimulationEntity implements Stateful<TripStatus> {
