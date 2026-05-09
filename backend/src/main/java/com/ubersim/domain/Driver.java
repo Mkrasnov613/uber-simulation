@@ -1,6 +1,8 @@
 package com.ubersim.domain;
 
 import com.ubersim.enums.DriverStatus;
+import com.ubersim.domain.base.SimulationEntity;
+import com.ubersim.interfaces.Stateful;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -11,10 +13,8 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Driver {
+public class Driver extends SimulationEntity implements Stateful<DriverStatus> {
 
-    private String id;
-    private String name;
     private DriverStatus status;
     private Coordinates location;
     private double rating;
@@ -24,6 +24,11 @@ public class Driver {
 
     public void isAvailable() {
         this.status = DriverStatus.AVAILABLE;
+    }
+
+    @Override
+    public boolean isActive() {
+        return status != DriverStatus.OFFLINE;
     }
 
     public void assignToTrip(String tripId) {
@@ -42,12 +47,14 @@ public class Driver {
         this.status = DriverStatus.AVAILABLE;
     }
 
-    public void moveToward(Coordinates target, double stepKm){}
+    public void moveToward(Coordinates target, double stepKm) {
+    }
 
-    public void updateRating(double newRating){
+    public void updateRating(double newRating) {
 
     }
-    public static String randomName(int n){
+
+    public static String randomName(int n) {
         List<String> nameList = new ArrayList<>();
         nameList = List.of("Jan", "Anna", "Piotr", "Maria", "Krzysztof",
                 "Katarzyna", "Paweł", "Małgorzata", "Tomasz", "Agnieszka",
@@ -56,10 +63,12 @@ public class Driver {
         int counter = n % nameList.size();
         return nameList.get(counter);
     }
-    public Driver(String name){
+
+    public Driver(String name) {
         this.name = name;
     }
-    public void AssignUUID(){
+
+    public void AssignUUID() {
         this.id = UUID.randomUUID().toString();
     }
 }

@@ -1,12 +1,9 @@
-package com.ubersim.domain;
+package com.ubersim.engine;
 
 import lombok.*;
 
 @Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructure
-
 public class SimulationConfig {
     private int driverCount;
     private int passengerCount;
@@ -17,6 +14,6 @@ public class SimulationConfig {
     private int maxTicks;
 
     public static SimulationConfig defaults() {
-        return new SimulationConfig()
+        return new SimulationConfig();
     }
 }

@@ -1,6 +1,9 @@
 package com.ubersim.domain;
 
+import com.ubersim.domain.base.SimulationEntity;
+import com.ubersim.enums.DriverStatus;
 import com.ubersim.enums.PassengerStatus;
+import com.ubersim.interfaces.Stateful;
 import lombok.*;
 
 import java.util.UUID;
@@ -9,10 +12,8 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Passenger {
+public class Passenger extends SimulationEntity implements Stateful<PassengerStatus> {
 
-    private String id;
-    private String name;
     private PassengerStatus status;
     private Coordinates pickupLocation;
     private Coordinates dropoffLocation;
@@ -20,11 +21,15 @@ public class Passenger {
     private int maxWaitTicks;
     private String currentTripId;
 
-    public Boolean isWaiting() {
+    public boolean isActive() {
+        return status != PassengerStatus.COMPLETED && status != PassengerStatus.ABANDONED;
+    }
+
+    public boolean isWaiting() {
         return status == PassengerStatus.WAITING;
     }
 
-    public void hasExceededWaitLimit() {
+    public boolean hasExceededWaitLimit() {
         return waitingTicks >= maxWaitTicks;
     }
 
@@ -46,7 +51,8 @@ public class Passenger {
         this.currentTripId = null;
         this.status = PassengerStatus.ABANDONED;
     }
-    public void AssignUUID(){
+
+    public void AssignUUID() {
         this.id = UUID.randomUUID().toString();
     }
 }
