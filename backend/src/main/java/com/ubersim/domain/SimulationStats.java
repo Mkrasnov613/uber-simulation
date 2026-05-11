@@ -15,6 +15,7 @@ public class SimulationStats {
     private double averageWaitTimeSeconds;
     private double averageTripDurationSeconds;
     private double averageFare;
+    private double totalEarnings;
 
 
     public double getCancellationRate() {
