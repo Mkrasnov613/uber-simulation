@@ -22,7 +22,11 @@ public class Driver extends SimulationEntity implements Stateful<DriverStatus> {
     private double totalEarnings;
     private String currentTripId;
 
-    public void isAvailable() {
+    public boolean isAvailable() {
+        return status == DriverStatus.AVAILABLE;
+    }
+
+    public void setAvailable(){
         this.status = DriverStatus.AVAILABLE;
     }
 

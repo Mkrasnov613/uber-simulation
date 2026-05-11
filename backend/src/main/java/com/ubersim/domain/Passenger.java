@@ -25,6 +25,10 @@ public class Passenger extends SimulationEntity implements Stateful<PassengerSta
         return status != PassengerStatus.COMPLETED && status != PassengerStatus.ABANDONED;
     }
 
+    public void setWaiting(){
+        this.status = PassengerStatus.WAITING;
+    }
+
     public boolean isWaiting() {
         return status == PassengerStatus.WAITING;
     }
@@ -50,6 +54,10 @@ public class Passenger extends SimulationEntity implements Stateful<PassengerSta
     public void abandon() {
         this.currentTripId = null;
         this.status = PassengerStatus.ABANDONED;
+    }
+
+    public void startRide(){
+        this.status = PassengerStatus.IN_TRIP;
     }
 
     public void AssignUUID() {
