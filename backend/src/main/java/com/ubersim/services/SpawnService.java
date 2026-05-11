@@ -15,7 +15,7 @@ public class SpawnService{
             Coordinates Cordinates = new Coordinates();
             Cordinates.randomCoordinates();
 
-            driver.isAvailable();
+            driver.setAvailable();
             driver.setLocation(Cordinates);
             driver.AssignUUID();
         }
@@ -32,7 +32,7 @@ public class SpawnService{
 
             spawn.randomCoordinates();
             desination.randomCoordinates();
-            passanger.isWaiting();
+            passanger.setWaiting();
             passanger.setPickupLocation(spawn);
             passanger.setDropoffLocation(desination);
             passanger.AssignUUID();
