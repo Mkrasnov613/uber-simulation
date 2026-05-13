@@ -5,13 +5,13 @@ import com.ubersim.domain.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SpawnService{
-    public List<Driver> spawnDrivers(int n = config.driverCount){
+public class SpawnService {
+    public List<Driver> spawnDrivers(int n = config.driverCount) {
         List<Driver> drivers = new ArrayList<>();
-        for(int i=0;i<n;i++){
+        for (int i = 0; i < n; i++) {
             drivers.add(new Driver(Driver.randomName(i)));
         }
-        for(Driver driver :drivers){
+        for (Driver driver : drivers) {
             Coordinates Cordinates = new Coordinates();
             Cordinates.randomCoordinates();
 
@@ -21,22 +21,23 @@ public class SpawnService{
         }
         return drivers;
     }
-    public List<Passenger> spawnPassengers(int n = config.passengerCount){
-        List<Passenger> passangers = new ArrayList<>();
-        for(int i=0;i<n;i++){
-            passangers.add(new Passenger());
+
+    public List<Passenger> spawnPassengers(int n = config.passengerCount) {
+        List<Passenger> passengers = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            passengers.add(new Passenger());
         }
-        for(Passenger passanger :passangers){
+        for (Passenger passenger : passengers) {
             Coordinates spawn = new Coordinates();
-            Coordinates desination = new Coordinates();
+            Coordinates destination = new Coordinates();
 
             spawn.randomCoordinates();
-            desination.randomCoordinates();
-            passanger.setWaiting();
-            passanger.setPickupLocation(spawn);
-            passanger.setDropoffLocation(desination);
-            passanger.AssignUUID();
+            destination.randomCoordinates();
+            passenger.setWaiting();
+            passenger.setPickupLocation(spawn);
+            passenger.setDropoffLocation(destination);
+            passenger.AssignUUID();
         }
-        return passangers;
+        return passengers;
     }
 }
