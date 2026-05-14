@@ -6,6 +6,9 @@ import com.ubersim.services.*;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Component
 public class SimulationEngine {
 
@@ -13,6 +16,10 @@ public class SimulationEngine {
     private final TripService tripService;
     private final QuotaService quotaService;
     private final FailureDetector failureDetector;
+
+    //No constructor for these two objects, errors for now
+    private final SimulationConfig simulationConfig;
+    private final SimulationStats simulationStats;
 
     @Getter
     private SimulationState state;
@@ -29,6 +36,30 @@ public class SimulationEngine {
     }
 
     public void tick() {
+        if(state.isRunning()) {
+            //I dont know if thats optimal but sure
+            Map<String, Driver> driversWithID = new HashMap<>();
+            Map<String, Passenger> passengersWithID = new HashMap<>();
+            for(Driver driver: state.getDrivers()){
+                driversWithID.put(driver.getId(),driver);
+            }
+            for(Passenger passenger: state.getPassengers()){
+                passengersWithID.put(passenger.getId(), passenger);
+            }
+
+            //Speed for all Drivers for now
+            double speedOfDrivers = 0.5;
+            state.setTick(state.getTick() + 1);
+            failureDetector.detectAbandoned(state.getPassengers());
+            matchingService.matchAll(state.getPassengers(), state.getDrivers(), state.getTick());
+            tripService.processTick(state.getActiveTrips(),driversWithID ,passengersWithID,speedOfDrivers,state.getTick());
+            //TODO simulation stats recalculation here
+            SimulationStatus status = quotaService.evaluate(simulationConfig,simulationStats,state.getTick())
+            state.setStatus(status);
+
+
+        }
+
     }
 
     public void stop() {
