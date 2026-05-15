@@ -11,9 +11,9 @@ import java.util.List;
 @Data
 @Builder
 public class SimulationStats {
-    private int totalTrips=0;
-    private int completedTrips=0;
-    private int cancelledTrips=0;
+    private int totalTrips;
+    private int completedTrips;
+    private int cancelledTrips;
     private int activeDrivers;
     private int availableDrivers;
     private int waitingPassengers;
@@ -59,7 +59,7 @@ public class SimulationStats {
         //adds total count of trips from returning functions
         this.cancelledTrips += canceledPassengers.size();
         this.completedTrips += completedTripsList.size();
-        this.totalTrips += completedTripsList.size() + newTrips.size()+ canceledPassengers.size();
+        this.totalTrips += newTrips.size();
 
     }
 }
