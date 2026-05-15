@@ -46,20 +46,20 @@ public class SimulationEngine {
             for(Passenger passenger: state.getPassengers()){
                 passengersWithID.put(passenger.getId(), passenger);
             }
-
             //Speed for all Drivers for now
             double speedOfDrivers = 0.5;
             state.setTick(state.getTick() + 1);
             failureDetector.detectAbandoned(state.getPassengers());
             matchingService.matchAll(state.getPassengers(), state.getDrivers(), state.getTick());
             tripService.processTick(state.getActiveTrips(),driversWithID ,passengersWithID,speedOfDrivers,state.getTick());
-            //TODO simulation stats recalculation here
-            SimulationStatus status = quotaService.evaluate(simulationConfig,simulationStats,state.getTick())
+
+            simulationStats.update(state.getDrivers(),state.getPassengers(),state.getActiveTrips());
+
+            SimulationStatus status = quotaService.evaluate(simulationConfig,simulationStats,state.getTick());
             state.setStatus(status);
 
 
         }
-
     }
 
     public void stop() {

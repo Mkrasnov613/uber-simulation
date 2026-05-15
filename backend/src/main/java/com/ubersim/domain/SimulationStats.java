@@ -1,7 +1,12 @@
 package com.ubersim.domain;
 
+import com.ubersim.enums.DriverStatus;
+import com.ubersim.enums.PassengerStatus;
+import com.ubersim.enums.TripStatus;
 import lombok.Builder;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 @Builder
@@ -28,5 +33,35 @@ public class SimulationStats {
 
     public static SimulationStats empty() {
         return SimulationStats.builder().build(); // all zeros
+    }
+
+    public void update(List<Driver> drivers,List<Passenger> passengers,List<Trip> Trips) {
+
+        this.waitingPassengers=0;
+        this.availableDrivers=0;
+        this.activeDrivers=0;
+
+        for(Passenger passenger:passengers){
+            if(passenger.getStatus()==PassengerStatus.WAITING){
+                waitingPassengers++;
+            }
+        }
+
+        for(Driver driver: drivers){
+            if(driver.getStatus()!=DriverStatus.OFFLINE){
+                activeDrivers++;
+            }
+            if(driver.getStatus()==DriverStatus.AVAILABLE){
+                availableDrivers++;
+            }
+        }
+        for(Trip trip: Trips){
+            totalTrips++;
+            if(trip.getStatus()== TripStatus.COMPLETED){
+                completedTrips++;
+            } else if(trip.getStatus() == TripStatus.CANCELLED){
+                cancelledTrips++;
+            }
+        }
     }
 }
