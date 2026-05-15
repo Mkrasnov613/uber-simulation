@@ -52,9 +52,8 @@ public class SimulationEngine {
             failureDetector.detectAbandoned(state.getPassengers());
             matchingService.matchAll(state.getPassengers(), state.getDrivers(), state.getTick());
             tripService.processTick(state.getActiveTrips(),driversWithID ,passengersWithID,speedOfDrivers,state.getTick());
-
+                //variable name getActiveTrips i dont know where to get all the trips so i leave it for now
             simulationStats.update(state.getDrivers(),state.getPassengers(),state.getActiveTrips());
-
             SimulationStatus status = quotaService.evaluate(simulationConfig,simulationStats,state.getTick());
             state.setStatus(status);
 
