@@ -40,6 +40,10 @@ public class SimulationStats {
         this.waitingPassengers=0;
         this.availableDrivers=0;
         this.activeDrivers=0;
+        this.cancelledTrips=0;
+        this.completedTrips=0;
+        this.totalTrips=0;
+
 
         for(Passenger passenger:passengers){
             if(passenger.getStatus()==PassengerStatus.WAITING){
