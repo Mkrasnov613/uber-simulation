@@ -16,19 +16,19 @@ public class SimulationEngine {
     private final TripService tripService;
     private final QuotaService quotaService;
     private final FailureDetector failureDetector;
-
-    //No constructor for these two objects, errors for now
     private final SimulationConfig simulationConfig;
     private final SimulationStats simulationStats;
 
     @Getter
     private SimulationState state;
 
-    public SimulationEngine(MatchingService matchingService, TripService tripService, QuotaService quotaService, FailureDetector failureDetector) {
+    public SimulationEngine(MatchingService matchingService, TripService tripService, QuotaService quotaService, FailureDetector failureDetector, SimulationConfig simulationConfig, SimulationStats simulationStats) {
         this.matchingService = matchingService;
         this.tripService = tripService;
         this.quotaService = quotaService;
         this.failureDetector = failureDetector;
+        this.simulationConfig = simulationConfig;
+        this.simulationStats = simulationStats;
         this.state = SimulationState.stub();
     }
 
