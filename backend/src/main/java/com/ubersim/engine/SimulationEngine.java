@@ -7,6 +7,7 @@ import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -37,6 +38,10 @@ public class SimulationEngine {
 
     public void tick() {
         if(state.isRunning()) {
+
+            List<Passenger> abandonedPassengers;
+            List<Trip> newTrips;
+            List<Trip> completedTrips;
             //I dont know if thats optimal but sure
             Map<String, Driver> driversWithID = new HashMap<>();
             Map<String, Passenger> passengersWithID = new HashMap<>();
@@ -46,18 +51,20 @@ public class SimulationEngine {
             for(Passenger passenger: state.getPassengers()){
                 passengersWithID.put(passenger.getId(), passenger);
             }
-            //Speed for all Drivers for now
-            double speedOfDrivers = 0.5;
+
+            double speedOfDrivers = simulationConfig.getDriverSpeedKmPerTick();
             state.setTick(state.getTick() + 1);
-            failureDetector.detectAbandoned(state.getPassengers());
-            matchingService.matchAll(state.getPassengers(), state.getDrivers(), state.getTick());
-            tripService.processTick(state.getActiveTrips(),driversWithID ,passengersWithID,speedOfDrivers,state.getTick());
-                //variable name getActiveTrips i dont know where to get all the trips so i leave it for now
-            simulationStats.update(state.getDrivers(),state.getPassengers(),state.getActiveTrips());
+
+            abandonedPassengers = failureDetector.detectAbandoned(state.getPassengers());
+
+            newTrips = matchingService.matchAll(state.getPassengers(), state.getDrivers(), state.getTick());
+
+            completedTrips = tripService.processTick(state.getActiveTrips(),driversWithID ,passengersWithID,speedOfDrivers,state.getTick());
+
+            simulationStats.update(state.getDrivers(),state.getPassengers(), newTrips, completedTrips, abandonedPassengers);
+
             SimulationStatus status = quotaService.evaluate(simulationConfig,simulationStats,state.getTick());
             state.setStatus(status);
-
-
         }
     }
 
