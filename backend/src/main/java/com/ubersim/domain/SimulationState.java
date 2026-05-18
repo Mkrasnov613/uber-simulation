@@ -1,5 +1,6 @@
 package com.ubersim.domain;
 
+import com.ubersim.enums.SimulationStatus;
 import lombok.*;
 import com.ubersim.engine.SimulationConfig;
 
@@ -11,12 +12,13 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SimulationState {
+    private SimulationStatus status;
     private boolean running;
     private int tick;
     private SimulationConfig config;
-    private List<Object> drivers;
-    private List<Object> passengers;
-    private List<Object> activeTrips;
+    private List<Driver> drivers;
+    private List<Passenger> passengers;
+    private List<Trip> activeTrips;
     private SimulationStats stats;
 
     public List<Driver> getAvailableDrivers() {
