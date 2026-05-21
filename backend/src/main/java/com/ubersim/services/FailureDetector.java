@@ -19,7 +19,7 @@ public class FailureDetector {
                 passenger.incrementWait();
                 //when passenger waits too long, abandons the trip and is added to the list
                 //of passengers that abandoned the trip
-                if(passenger.getMaxWaitTicks() >= passenger.getWaitingTicks()){
+                if(passenger.getWaitingTicks() >= passenger.getMaxWaitTicks()){
                     passenger.abandon();
                     abandonedPassengers.add(passenger);
                 }
@@ -27,13 +27,5 @@ public class FailureDetector {
             }
         }
         return abandonedPassengers;
-    }
-
-    public boolean hasSimulationFailed(SimulationConfig config, SimulationStats stats, int currentTick) {
-            //TODO decide the lose parameter
-            if(stats.getCancelledTrips() > config.getPassengerCount()/2){
-                return true;
-            }
-        return false;
     }
 }

@@ -24,11 +24,11 @@ public class SimulationStats {
 
 
     public double getCancellationRate() {
-        return 0;
+        return totalTrips == 0 ? 0 : (double) cancelledTrips / totalTrips;
     }
 
     public double getCompletionRate() {
-        return 0;
+        return totalTrips == 0 ? 0 : (double) completedTrips / totalTrips;
     }
 
     public static SimulationStats empty() {

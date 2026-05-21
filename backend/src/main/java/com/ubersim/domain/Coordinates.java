@@ -36,7 +36,18 @@ public class Coordinates {
     }
 
     public Coordinates stepToward(Coordinates target, double stepKm) {
-        return this;
+        double distance = this.distanceTo(target);
+
+        if (distance <= stepKm) {
+            return new Coordinates(target.getLatitude(), target.getLongitude());
+        }
+
+        double fraction = stepKm / distance;
+
+        double newLat = this.latitude + fraction * (target.getLatitude() - this.latitude);
+        double newLng = this.longitude + fraction * (target.getLongitude() - this.longitude);
+
+        return new Coordinates(newLat, newLng);
     }
 
     public void randomCoordinates() {
