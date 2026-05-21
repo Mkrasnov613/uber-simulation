@@ -44,4 +44,9 @@ public class QuotaService {
         double progress = current / config.getQuotaTarget();
         return Math.min(progress, 1.0);
     }
+
+    public boolean hasSimulationFailed(SimulationConfig config, SimulationStats stats, int currentTick) {
+        //TODO decide the lose parameter
+        return stats.getCancelledTrips() > config.getPassengerCount() / 2;
+    }
 }

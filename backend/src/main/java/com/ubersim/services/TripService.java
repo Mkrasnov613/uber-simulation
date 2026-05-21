@@ -19,40 +19,34 @@ public class TripService {
 
             // if trip status is DRIVER_ARRIVING - push driver to a new position
             if (trip.getStatus() == TripStatus.DRIVER_ARRIVING) {
-                trip.setDistanceKm(trip.getDistanceKm() - speedKmPerTick);
 
-                // if driver is close - set trip status to IN_PROGRESS and start trip for passenger and driver
-                if (trip.getDistanceKm() <= 0.05) {
-                    trip.setStatus(TripStatus.IN_PROGRESS);
-                    trip.setDistanceKm(trip.getDistanceKm());
+                driver.moveToward(trip.getPickupLocation(), speedKmPerTick);
 
-                    // TODO: check if those methods are used somewhere else, if not - make them as a single method in Trip
-                    if (driver != null) {
-                        driver.startTrip();
-                    }
-                    if (passenger != null) {
-                        passenger.startRide();
-                    }
+                if (driver.getLocation().distanceTo(trip.getPickupLocation()) <= 0.05) {
+                    trip.start(currentTick);
+                    driver.startTrip();
+                    passenger.startRide();
                 }
+
             } else if (trip.getStatus() == TripStatus.IN_PROGRESS) {
-                trip.setDistanceKm(trip.getDistanceKm() - speedKmPerTick);
-                if (trip.getDistanceKm() <= 0.05) {
+
+                driver.moveToward(trip.getDropoffLocation(), speedKmPerTick);
+
+                if (driver.getLocation().distanceTo(trip.getDropoffLocation()) <= 0.05) {
                     trip.complete(currentTick);
+                    driver.completeTrip(trip.getFare());
+                    passenger.completeRide();
                     completedTrips.add(trip);
-                    if (driver != null) {
-                        driver.completeTrip(trip.getFare());
-                    }
-                    if (passenger != null) {
-                        passenger.completeRide();
-                    }
                 }
             }
-
 
         }
         return completedTrips;
     }
 
     public void cancelTrip(Trip trip, Driver driver, Passenger passenger) {
+        trip.cancel();
+        if (driver != null) driver.setAvailable();
+        if (passenger != null) passenger.abandon();
     }
 }

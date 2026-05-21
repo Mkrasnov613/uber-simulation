@@ -52,15 +52,14 @@ public class Trip extends SimulationEntity implements Stateful<TripStatus> {
         this.startedAtTick = tick;
     }
 
-    // TODO: decide what formula we use to calculate fare
     public double calculateFare() {
-        return 0.0;
+        return 5.0 + 2.5 * distanceKm;
     }
 
     public void complete(int tick) {
         this.status = TripStatus.COMPLETED;
         this.completedAtTick = tick;
-        // this.fare = calculateFare();
+        this.fare = calculateFare();
     }
 
     public void cancel() {

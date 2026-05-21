@@ -26,7 +26,7 @@ public class Driver extends SimulationEntity implements Stateful<DriverStatus> {
         return status == DriverStatus.AVAILABLE;
     }
 
-    public void setAvailable(){
+    public void setAvailable() {
         this.status = DriverStatus.AVAILABLE;
     }
 
@@ -52,6 +52,7 @@ public class Driver extends SimulationEntity implements Stateful<DriverStatus> {
     }
 
     public void moveToward(Coordinates target, double stepKm) {
+        this.location = this.location.stepToward(target, stepKm);
     }
 
     public void updateRating(double newRating) {

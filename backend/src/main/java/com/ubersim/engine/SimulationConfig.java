@@ -14,6 +14,6 @@ public class SimulationConfig {
     private int maxTicks;
 
     public static SimulationConfig defaults() {
-        return new SimulationConfig();
+        return SimulationConfig.builder().driverCount(10).passengerCount(5).maxPassengerWaitTicks(20).driverSpeedKmPerTick(0.1).quotaMode("RIDES").quotaTarget(5.0).maxTicks(100).build();
     }
 }
