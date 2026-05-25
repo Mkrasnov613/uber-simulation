@@ -20,19 +20,17 @@ public class SimulationEngine {
     private final SpawnService spawnService;
     private final FailureDetector failureDetector;
     private final SimulationConfig simulationConfig;
-    private final SimulationStats simulationStats;
 
     @Getter
     private SimulationState state;
 
-    public SimulationEngine(MatchingService matchingService, TripService tripService, QuotaService quotaService, SpawnService spawnService, FailureDetector failureDetector, SimulationConfig simulationConfig, SimulationStats simulationStats) {
+    public SimulationEngine(MatchingService matchingService, TripService tripService, QuotaService quotaService, SpawnService spawnService, FailureDetector failureDetector, SimulationConfig simulationConfig) {
         this.matchingService = matchingService;
         this.tripService = tripService;
         this.quotaService = quotaService;
         this.spawnService = spawnService;
         this.failureDetector = failureDetector;
         this.simulationConfig = simulationConfig;
-        this.simulationStats = simulationStats;
         this.state = SimulationState.stub();
     }
 

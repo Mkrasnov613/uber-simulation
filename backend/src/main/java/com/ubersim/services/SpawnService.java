@@ -49,6 +49,8 @@ public class SpawnService {
             passenger.setWaiting();
             passenger.setPickupLocation(spawn);
             passenger.setDropoffLocation(destination);
+            passenger.setMaxWaitTicks(config.getMaxPassengerWaitTicks());
+            passenger.setWaitingTicks(0);
             passenger.AssignUUID();
         }
         return passengers;
