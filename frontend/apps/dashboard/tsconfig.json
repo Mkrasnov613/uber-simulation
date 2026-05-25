@@ -8,5 +8,5 @@
     "composite": false,
     "noEmit": true
   },
-  "include": ["src"]
+  "include": ["src", "src/types/statuses.ts"]
 }
