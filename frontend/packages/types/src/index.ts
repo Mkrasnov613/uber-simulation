@@ -59,7 +59,10 @@ export interface SimulationStats {
   averageFare: number;
 }
 
+export type SimulationStatus = 'IDLE' | 'RUNNING' | 'COMPLETED' | 'FAILED';
+
 export interface SimulationState {
+  status: SimulationStatus;
   running: boolean;
   tick: number;
   drivers: Driver[];

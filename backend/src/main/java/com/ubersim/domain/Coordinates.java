@@ -2,7 +2,7 @@ package com.ubersim.domain;
 
 import lombok.*;
 
-import java.util.random.RandomGenerator;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Data
 @NoArgsConstructor
@@ -51,9 +51,7 @@ public class Coordinates {
     }
 
     public void randomCoordinates() {
-        double latitude = RandomGenerator.getDefault().nextDouble(52.15, 52.35);
-        double longitude = RandomGenerator.getDefault().nextDouble(20.90, 21.15);
-        this.latitude = latitude;
-        this.longitude = longitude;
+        this.latitude = ThreadLocalRandom.current().nextDouble(52.15, 52.35);
+        this.longitude = ThreadLocalRandom.current().nextDouble(20.90, 21.15);
     }
 }
