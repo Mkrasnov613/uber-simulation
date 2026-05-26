@@ -1,0 +1,35 @@
+export enum DriverStatus {
+  AVAILABLE = "AVAILABLE",
+  EN_ROUTE_TO_PASSENGER = "EN_ROUTE_TO_PASSENGER",
+  ON_TRIP = "ON_TRIP",
+  OFFLINE = "OFFLINE",
+}
+
+export enum PassengerStatus {
+  WAITING = "WAITING",
+  MATCHED = "MATCHED",
+  IN_TRIP = "IN_TRIP",
+  COMPLETED = "COMPLETED",
+  ABANDONED = "ABANDONED",
+}
+
+export enum TripStatus {
+  REQUESTED = "REQUESTED",
+  MATCHED = "MATCHED",
+  DRIVER_ARRIVING = "DRIVER_ARRIVING",
+  IN_PROGRESS = "IN_PROGRESS",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
+}
+
+export enum SimulationStatus {
+  AVAILABLE = "AVAILABLE",
+  EN_ROUTE_TO_PASSENGER = "EN_ROUTE_TO_PASSENGER",
+  ON_TRIP = "ON_TRIP",
+  OFFLINE = "OFFLINE",
+}
+
+export enum QuotaMode {
+  RIDES = "RIDES",
+  EARNINGS = "EARNINGS",
+}

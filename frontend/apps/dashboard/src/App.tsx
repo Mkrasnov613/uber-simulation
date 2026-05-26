@@ -1,4 +1,4 @@
-import type { SimulationState } from "@uber-sim/types";
+import type { SimulationState } from "./types";
 import { useEffect, useState } from "react";
 
 const API_BASE = "/api";
@@ -36,10 +36,22 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleStart = () => post("/simulation/start").then(setState).catch((e) => setError(String(e)));
-  const handleTick = () => post("/simulation/tick").then(setState).catch((e) => setError(String(e)));
-  const handleStop = () => post("/simulation/stop").then(setState).catch((e) => setError(String(e)));
-  const handleReset = () => post("/simulation/reset").then(setState).catch((e) => setError(String(e)));
+  const handleStart = () =>
+    post("/simulation/start")
+      .then(setState)
+      .catch((e) => setError(String(e)));
+  const handleTick = () =>
+    post("/simulation/tick")
+      .then(setState)
+      .catch((e) => setError(String(e)));
+  const handleStop = () =>
+    post("/simulation/stop")
+      .then(setState)
+      .catch((e) => setError(String(e)));
+  const handleReset = () =>
+    post("/simulation/reset")
+      .then(setState)
+      .catch((e) => setError(String(e)));
 
   return (
     <div style={{ padding: "2rem", fontFamily: "monospace" }}>
@@ -61,7 +73,8 @@ function App() {
       {state && (
         <>
           <p>
-            Status: <strong>{state.status}</strong> | Tick: <strong>{state.tick}</strong>
+            Status: <strong>{state.status}</strong> | Tick:{" "}
+            <strong>{state.tick}</strong>
           </p>
 
           <h2>Stats</h2>
