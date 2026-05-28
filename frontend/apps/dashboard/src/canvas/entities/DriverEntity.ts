@@ -1,6 +1,7 @@
 import { CanvasPoint, DriverStatus, MapBounds } from "../../types";
 import { Driver } from "../../types";
 import { project } from "../utils/projection";
+import { findPath, LatLng } from "../map/RoadGraph";
 
 export class DriverEntity {
   readonly id: string;
@@ -12,7 +13,12 @@ export class DriverEntity {
   currentTripId: string | null;
 
   private pos: CanvasPoint;
-  private target: CanvasPoint;
+  private path: LatLng[] = [];
+  private pathIndex: number = 0;
+  private geoPos: LatLng;
+  private bounds: MapBounds;
+  private w: number;
+  private h: number;
 
   constructor(dto: Driver, bounds: MapBounds, w: number, h: number) {
     this.id = dto.id;
@@ -22,28 +28,46 @@ export class DriverEntity {
     this.totalEarnings = dto.totalEarnings;
     this.currentTripId = dto.currentTripId ?? null;
     this.status = dto.status;
-
-    // Project the real lat/lng position onto canvas pixels
-    const point: CanvasPoint = project(dto.location, bounds, w, h);
-
-    // On creation: pos and target are the SAME point.
-    // This means the driver appears instantly at its real location
-    // instead of lerping in from (0, 0).
-    this.pos = { ...point };
-    this.target = { ...point };
+    this.bounds = bounds;
+    this.w = w;
+    this.h = h;
+    this.geoPos = { lat: dto.location.latitude, lng: dto.location.longitude };
+    this.pos = { ...project(dto.location, bounds, w, h) };
   }
 
   update(): void {
-    // Lerp formula: move pos 9% closer to target each frame
-    // At 60fps this feels smooth
-    this.pos.x += (this.target.x - this.pos.x) * 0.09;
-    this.pos.y += (this.target.y - this.pos.y) * 0.09;
+    if (this.pathIndex >= this.path.length) return;
+
+    const wp = this.path[this.pathIndex];
+    const wpCanvas = project(
+      { latitude: wp.lat, longitude: wp.lng },
+      this.bounds,
+      this.w,
+      this.h,
+    );
+
+    this.pos.x += (wpCanvas.x - this.pos.x) * 0.09;
+    this.pos.y += (wpCanvas.y - this.pos.y) * 0.09;
+
+    const dx = wpCanvas.x - this.pos.x;
+    const dy = wpCanvas.y - this.pos.y;
+    if (dx * dx + dy * dy < 4) {
+      this.geoPos = wp;
+      this.pathIndex++;
+    }
   }
 
-  // Called when WebSocket/polling sends new state
   applyDTO(dto: Driver, bounds: MapBounds, w: number, h: number): void {
-    // Project new lat/lng to canvas pixels — becomes the new TARGET.
-    this.target = project(dto.location, bounds, w, h);
+    this.bounds = bounds;
+    this.w = w;
+    this.h = h;
+
+    const newGeoPos: LatLng = { lat: dto.location.latitude, lng: dto.location.longitude };
+
+    if (newGeoPos.lat !== this.geoPos.lat || newGeoPos.lng !== this.geoPos.lng) {
+      this.path = findPath(this.geoPos, newGeoPos);
+      this.pathIndex = 0;
+    }
 
     this.status = dto.status;
     this.currentTripId = dto.currentTripId ?? null;
@@ -57,28 +81,24 @@ export class DriverEntity {
     const color = this.colorForStatus();
 
     ctx.save();
-    // shadowBlur creates the glow — only for active drivers
     ctx.shadowColor = color;
     ctx.shadowBlur = this.status === "OFFLINE" ? 0 : 14;
 
-    // Outer glow ring — low opacity filled circle
     ctx.beginPath();
     ctx.arc(x, y, 10, 0, Math.PI * 2);
-    ctx.fillStyle = color + "22"; // hex opacity: 22 = ~13%
+    ctx.fillStyle = color + "22";
     ctx.fill();
 
-    // Pin body — the visible dot
     ctx.beginPath();
     ctx.arc(x, y, 5, 0, Math.PI * 2);
     ctx.fillStyle = color;
     ctx.fill();
 
-    // White border — makes it readable on dark map
     ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
     ctx.lineWidth = 1.2;
     ctx.stroke();
 
-    ctx.shadowBlur = 0; // always reset — shadowBlur bleeds into other draws
+    ctx.shadowBlur = 0;
     ctx.restore();
   }
 

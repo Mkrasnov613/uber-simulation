@@ -1,6 +1,6 @@
 import { MAP_BOUNDS } from "../../constants/mapBounds";
 import { project } from "../utils/projection";
-import { ROADS } from "./helpers";
+import { RIVERS, ROADS } from "./helpers";
 import { DISTRICTS } from "./helpers";
 
 export class MapLayer {
@@ -43,11 +43,11 @@ export class MapLayer {
     this.drawBackground(c);
     this.drawRoads(c);
     this.drawDistrictLabels(c);
+    this.drawRivers(c);
   }
 
   private drawBackground(c: CanvasRenderingContext2D): void {
-    // base fill
-    c.fillStyle = "#0c0f18";
+    c.fillStyle = "#080e1a";
     c.fillRect(0, 0, this.w, this.h);
 
     // very subtle grid texture — gives depth to empty blocks
@@ -103,26 +103,24 @@ export class MapLayer {
         }
       };
 
-      // pass 1 — dark outer shadow (gives road a raised look)
+      // pass 1 — outer shadow
       makePath();
-      c.strokeStyle = "rgba(0,0,0,0.5)";
-      c.lineWidth = road.width + 4;
-      c.lineCap = "round";
-      c.lineJoin = "round";
+      c.strokeStyle = "rgba(0,0,0,0.6)";
+      c.lineWidth = road.width + 5;
       c.stroke();
 
       // pass 2 — road surface
       makePath();
-      c.strokeStyle = road.major ? "#131826" : "#101420";
+      c.strokeStyle = road.major ? "#1a2035" : "#141828";
       c.lineWidth = road.width;
       c.stroke();
 
-      // pass 3 — top highlight (thin bright line = 3D bevel effect)
+      // pass 3 — top highlight
       makePath();
       c.strokeStyle = road.major
-        ? "rgba(255,255,255,0.045)"
-        : "rgba(255,255,255,0.022)";
-      c.lineWidth = road.width * 0.15;
+        ? "rgba(255,255,255,0.09)"
+        : "rgba(255,255,255,0.05)";
+      c.lineWidth = road.width * 0.2;
       c.stroke();
 
       // pass 4 — center dashes on major roads only
@@ -132,7 +130,7 @@ export class MapLayer {
         c.lineWidth = 0.8;
         c.setLineDash([8, 10]);
         c.stroke();
-        c.setLineDash([]); // always reset
+        c.setLineDash([]);
       }
 
       // road name label — placed at midpoint of the road
@@ -165,10 +163,49 @@ export class MapLayer {
       );
 
       c.font = '500 11px "JetBrains Mono", monospace';
-      c.fillStyle = "rgba(100,120,160,0.4)";
+      c.fillStyle = "rgba(130,150,190,0.5)";
       c.textAlign = "center";
       c.letterSpacing = "0.18em";
       c.fillText(d.label, pt.x, pt.y);
+    }
+  }
+
+  private drawRivers(c: CanvasRenderingContext2D): void {
+    for (const river of RIVERS) {
+      const pts = river.waypoints.map(([lat, lng]) =>
+        project({ latitude: lat, longitude: lng }, MAP_BOUNDS, this.w, this.h),
+      );
+
+      const makePath = () => {
+        c.beginPath();
+        c.moveTo(pts[0].x, pts[0].y);
+
+        for (let i = 0; i < pts.length - 1; i++) {
+          const curr = pts[i];
+          const next = pts[i + 1];
+          const midX = (curr.x + next.x) / 2;
+          const midY = (curr.y + next.y) / 2;
+          c.quadraticCurveTo(curr.x, curr.y, midX, midY);
+        }
+        c.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
+      };
+
+      makePath();
+      c.strokeStyle = "#0a1628";
+      c.lineWidth = 18;
+      c.lineCap = "round";
+      c.lineJoin = "round";
+      c.stroke();
+
+      makePath();
+      c.strokeStyle = "#0d1f3c";
+      c.lineWidth = 13;
+      c.stroke();
+
+      makePath();
+      c.strokeStyle = "rgba(100,160,255,0.08)";
+      c.lineWidth = 2;
+      c.stroke();
     }
   }
 }

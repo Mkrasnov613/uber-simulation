@@ -1,3 +1,4 @@
+import { SimulationMap } from "./components/SimulationMap";
 import type { SimulationState } from "./types";
 import { useEffect, useState } from "react";
 
@@ -54,42 +55,28 @@ function App() {
       .catch((e) => setError(String(e)));
 
   return (
-    <div style={{ padding: "2rem", fontFamily: "monospace" }}>
-      <h1>Uber Simulation Dashboard</h1>
-
-      {error && (
-        <p style={{ color: "red" }}>
-          {error} — <code>docker-compose up --build</code>
-        </p>
-      )}
-
-      <div style={{ display: "flex", gap: "1rem", marginBottom: "1.5rem" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+      {/* control bar stays at top */}
+      <div
+        style={{
+          padding: "0.6rem 1rem",
+          display: "flex",
+          gap: "0.8rem",
+          background: "#111520",
+          borderBottom: "1px solid #1e2535",
+        }}
+      >
         <button onClick={handleStart}>Start</button>
         <button onClick={handleTick}>Tick</button>
         <button onClick={handleStop}>Stop</button>
         <button onClick={handleReset}>Reset</button>
+        {error && <span style={{ color: "red", fontSize: 12 }}>{error}</span>}
       </div>
 
-      {state && (
-        <>
-          <p>
-            Status: <strong>{state.status}</strong> | Tick:{" "}
-            <strong>{state.tick}</strong>
-          </p>
-
-          <h2>Stats</h2>
-          <pre>{JSON.stringify(state.stats, null, 2)}</pre>
-
-          <h2>Drivers ({state.drivers?.length ?? 0})</h2>
-          <pre>{JSON.stringify(state.drivers, null, 2)}</pre>
-
-          <h2>Passengers ({state.passengers?.length ?? 0})</h2>
-          <pre>{JSON.stringify(state.passengers, null, 2)}</pre>
-
-          <h2>Active Trips ({state.activeTrips?.length ?? 0})</h2>
-          <pre>{JSON.stringify(state.activeTrips, null, 2)}</pre>
-        </>
-      )}
+      {/* map fills remaining space */}
+      <div style={{ flex: 1, overflow: "hidden" }}>
+        <SimulationMap state={state} />
+      </div>
     </div>
   );
 }

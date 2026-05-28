@@ -13,15 +13,19 @@ interface District {
   lng: number;
 }
 
+interface River {
+  waypoints: [number, number][];
+}
+
 // Real Warsaw roads within 52.15–52.35 / 20.90–21.15
 export const ROADS: Road[] = [
-  // Major horizontals
+  // major horizontals — was width:3, now width:6
   {
     waypoints: [
       [52.23, 20.9],
       [52.23, 21.15],
     ],
-    width: 3,
+    width: 6,
     major: true,
     name: "AL. JEROZOLIMSKIE",
   },
@@ -30,7 +34,7 @@ export const ROADS: Road[] = [
       [52.27, 20.9],
       [52.27, 21.15],
     ],
-    width: 3,
+    width: 6,
     major: true,
     name: "UL. MARSZAŁKOWSKA",
   },
@@ -39,17 +43,18 @@ export const ROADS: Road[] = [
       [52.19, 20.9],
       [52.19, 21.15],
     ],
-    width: 2,
+    width: 5,
     major: true,
     name: "UL. PUŁAWSKA",
   },
-  // Major verticals
+
+  // major verticals — was width:3, now width:6
   {
     waypoints: [
       [52.15, 21.0],
       [52.35, 21.0],
     ],
-    width: 3,
+    width: 6,
     major: true,
     name: "UL. NOWY ŚWIAT",
   },
@@ -58,17 +63,16 @@ export const ROADS: Road[] = [
       [52.15, 21.05],
       [52.35, 21.05],
     ],
-    width: 3,
+    width: 6,
     major: true,
     name: "UL. PRAGA",
   },
-  // Minor grid
   {
     waypoints: [
       [52.21, 20.9],
       [52.21, 21.15],
     ],
-    width: 1.5,
+    width: 3,
     major: false,
   },
   {
@@ -76,7 +80,7 @@ export const ROADS: Road[] = [
       [52.25, 20.9],
       [52.25, 21.15],
     ],
-    width: 1.5,
+    width: 3,
     major: false,
   },
   {
@@ -84,7 +88,7 @@ export const ROADS: Road[] = [
       [52.3, 20.9],
       [52.3, 21.15],
     ],
-    width: 1.5,
+    width: 3,
     major: false,
   },
   {
@@ -92,7 +96,7 @@ export const ROADS: Road[] = [
       [52.15, 20.95],
       [52.35, 20.95],
     ],
-    width: 1.5,
+    width: 3,
     major: false,
   },
   {
@@ -100,22 +104,8 @@ export const ROADS: Road[] = [
       [52.15, 21.1],
       [52.35, 21.1],
     ],
-    width: 1.5,
+    width: 3,
     major: false,
-  },
-  // Diagonal - Wisła river approximate path
-  {
-    waypoints: [
-      [52.15, 21.05],
-      [52.19, 21.04],
-      [52.23, 21.03],
-      [52.27, 21.03],
-      [52.31, 21.04],
-      [52.35, 21.06],
-    ],
-    width: 4,
-    major: false,
-    curved: true,
   },
 ];
 
@@ -125,4 +115,18 @@ export const DISTRICTS: District[] = [
   { label: "PRAGA", lat: 52.255, lng: 21.075 },
   { label: "MOKOTÓW", lat: 52.19, lng: 21.0 },
   { label: "ŻOLIBORZ", lat: 52.29, lng: 20.97 },
+];
+
+export const RIVERS: River[] = [
+  {
+    // Wisła river — flows north through Warsaw
+    waypoints: [
+      [52.15, 21.06],
+      [52.19, 21.05],
+      [52.23, 21.04],
+      [52.27, 21.04],
+      [52.31, 21.05],
+      [52.35, 21.07],
+    ],
+  },
 ];
