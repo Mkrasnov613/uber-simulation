@@ -1,8 +1,1 @@
-import { MapBounds } from "../types";
-
-export const MAP_BOUNDS: MapBounds = {
-  minLat: 52.15,
-  maxLat: 52.35,
-  minLng: 20.9,
-  maxLng: 21.15,
-};
+export const BOUNDS = { minLat: 52.0, maxLat: 52.4, minLng: 20.8, maxLng: 21.4 };
