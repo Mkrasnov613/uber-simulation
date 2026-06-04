@@ -1,81 +1,55 @@
-import type { Trip, CanvasPoint } from "../../types";
-import type { TripStatus } from "../../types/statuses";
+import { Coordinates, MapBounds, Trip, TripStatus } from "../../types";
+import { project } from "../utils/project";
+import { TRIP_ENROUTE, TRIP_ON_TRIP } from "../utils/theme";
 
 export class TripEntity {
   readonly id: string;
-  readonly driverId: string;
-  readonly passengerId: string;
+  driverId: string;
   status: TripStatus;
-  fare: number;
+  pickup: Coordinates;
+  dropoff: Coordinates;
 
-  constructor(dto: Trip) {
-    this.id = dto.id;
-    this.driverId = dto.driverId;
-    this.passengerId = dto.passengerId;
-    this.status = dto.status;
-    this.fare = dto.fare;
+  constructor(trip: Trip) {
+    this.id = trip.id;
+    this.driverId = trip.driverId;
+    this.status = trip.status;
+    this.pickup = { ...trip.pickupLocation };
+    this.dropoff = { ...trip.dropoffLocation };
   }
 
-  applyDTO(dto: Trip): void {
-    this.status = dto.status;
-    this.fare = dto.fare;
+  applyDto(trip: Trip) {
+    this.status = trip.status;
+    this.pickup = { ...trip.pickupLocation };
+    this.dropoff = { ...trip.dropoffLocation };
   }
 
   draw(
     ctx: CanvasRenderingContext2D,
-    driverPos: CanvasPoint,
-    passengerPos: CanvasPoint,
-  ): void {
-    if (this.status === "COMPLETED" || this.status === "CANCELLED") return;
+    bounds: MapBounds,
+    size: { width: number; height: number },
+    driverPos: Coordinates | null,
+  ) {
+    if (!driverPos) return;
+    const isToPickUp =
+      this.status === TripStatus.MATCHED ||
+      this.status === TripStatus.DRIVER_ARRIVING;
+    const isInProgress = this.status === TripStatus.IN_PROGRESS;
+
+    if (!isToPickUp && !isInProgress) return;
+
+    const target = isInProgress ? this.dropoff : this.pickup;
+    const pointA = project(driverPos, bounds, size.width, size.height);
+    const pointB = project(target, bounds, size.width, size.height);
 
     ctx.save();
-
-    // glow layer — wide, low opacity, drawn first
+    ctx.strokeStyle = isInProgress ? TRIP_ON_TRIP : TRIP_ENROUTE;
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.8;
+    if (isToPickUp) ctx.setLineDash([8, 6]);
     ctx.beginPath();
-    ctx.moveTo(driverPos.x, driverPos.y);
-    ctx.lineTo(passengerPos.x, passengerPos.y);
-    ctx.strokeStyle = "rgba(0,229,192,0.1)";
-    ctx.lineWidth = 6;
-    ctx.lineCap = "round";
+    ctx.moveTo(pointA.x, pointA.y);
+    ctx.lineTo(pointB.x, pointB.y);
     ctx.stroke();
-
-    // main line
-    ctx.beginPath();
-    ctx.moveTo(driverPos.x, driverPos.y);
-    ctx.lineTo(passengerPos.x, passengerPos.y);
-
-    if (this.status === "DRIVER_ARRIVING") {
-      // dashed — driver heading to pickup, passenger not yet in car
-      ctx.setLineDash([7, 6]);
-      ctx.strokeStyle = "rgba(240,165,0,0.7)"; // amber
-    } else {
-      // solid — driver has the passenger, trip in progress
-      ctx.setLineDash([]);
-      ctx.strokeStyle = "rgba(0,229,192,0.75)"; // teal
-    }
-
-    ctx.lineWidth = 1.8;
-    ctx.stroke();
-    ctx.setLineDash([]); // always reset — dashes leak like shadowBlur
-
-    // midpoint icon — small rotated rect on the line
-    const mx = (driverPos.x + passengerPos.x) / 2;
-    const my = (driverPos.y + passengerPos.y) / 2;
-    const angle = Math.atan2(
-      passengerPos.y - driverPos.y,
-      passengerPos.x - driverPos.x,
-    );
-
-    ctx.translate(mx, my);
-    ctx.rotate(angle);
-    ctx.beginPath();
-    ctx.roundRect(-8, -4, 16, 8, 2);
-    ctx.fillStyle = "rgba(0,229,192,0.2)";
-    ctx.strokeStyle = "rgba(0,229,192,0.5)";
-    ctx.lineWidth = 0.8;
-    ctx.fill();
-    ctx.stroke();
-
     ctx.restore();
   }
 }
