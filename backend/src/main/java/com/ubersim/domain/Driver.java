@@ -22,6 +22,14 @@ public class Driver extends SimulationEntity implements Stateful<DriverStatus> {
     private double totalEarnings;
     private String currentTripId;
 
+    private String currentNodeId;   // node the driver is currently sitting on / last passed
+    private List<String> path;      // route as a list of node ids (from findPath)
+    private int pathIndex;          // which waypoint in path we're heading to
+
+    public Driver(String name) {
+        this.name = name;
+    }
+
     public boolean isAvailable() {
         return status == DriverStatus.AVAILABLE;
     }
@@ -67,10 +75,6 @@ public class Driver extends SimulationEntity implements Stateful<DriverStatus> {
         );//List of predefined names
         int counter = n % nameList.size();
         return nameList.get(counter);
-    }
-
-    public Driver(String name) {
-        this.name = name;
     }
 
     public void AssignUUID() {

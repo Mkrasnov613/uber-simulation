@@ -17,6 +17,12 @@ import java.util.UUID;
 @Service
 public class MatchingService {
 
+    private final MovementService movementService;
+
+    public MatchingService(MovementService movementService) {
+        this.movementService = movementService;
+    }
+
     public Optional<Driver> findNearestDriver(Passenger passenger, List<Driver> availableDrivers) {
         if (availableDrivers == null || availableDrivers.isEmpty()) return Optional.empty();
 
@@ -46,6 +52,9 @@ public class MatchingService {
 
         driver.assignToTrip(tripId);
         passenger.matchToTrip(tripId);
+
+        // route the driver to the pickup node
+        movementService.routeTo(driver, driver.getCurrentNodeId(), passenger.getPickupNodeId());
 
         return trip;
     }
