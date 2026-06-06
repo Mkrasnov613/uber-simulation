@@ -21,6 +21,9 @@ public class Passenger extends SimulationEntity implements Stateful<PassengerSta
     private int maxWaitTicks;
     private String currentTripId;
 
+    private String pickupNodeId;
+    private String dropoffNodeId;
+
     public boolean isActive() {
         return status != PassengerStatus.COMPLETED && status != PassengerStatus.ABANDONED;
     }
