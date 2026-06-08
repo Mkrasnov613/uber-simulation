@@ -10,6 +10,8 @@ export interface Driver {
   name: string;
   status: DriverStatus;
   location: Coordinates;
+  path: string[];
+  pathIndex: number;
   rating: number;
   totalTripsCompleted: number;
   totalEarnings: number;

@@ -1,25 +1,50 @@
-import { MapCanvas } from "./canvas/map/MapCanvas";
+import { useState } from "react";
+import { SimulationMap } from "./components/SimulationMap";
+import { TopBar } from "./components/hud/TopBar";
+import { HudPanel } from "./components/hud/HudPanel";
+import { BottomBar } from "./components/hud/BottomBar";
+import { useRoadMap } from "./hooks/useRoadMap";
 import { useSimulation } from "./hooks/useSimulation";
-import { BOUNDS } from "./constants/mapBounds";
+import { COLORS, FONT } from "./theme";
+
 const App = () => {
-  const { drivers, passengers, trips, tickStart, status, tick } = useSimulation(
-    {
-      url: "ws://localhost:8080/ws/state",
-    },
-  );
+  const roadMap = useRoadMap();
+  const { drivers, passengers, trips, tickStart, status, tick, stats, driverList, activeTripsCount } =
+    useSimulation({ url: "ws://localhost:8080/ws/state" });
+
+  const [smooth, setSmooth] = useState(true);
 
   return (
-    <div style={{ width: "100%", height: 600 }}>
-      <MapCanvas
-        bounds={BOUNDS}
-        drivers={drivers}
-        passengers={passengers}
-        trips={trips}
-        tickStart={tickStart}
+    <div
+      style={{
+        position: "relative",
+        width: "100vw",
+        height: "100vh",
+        background: COLORS.bg,
+        overflow: "hidden",
+        fontFamily: FONT,
+      }}
+    >
+      {roadMap && (
+        <SimulationMap
+          roadMap={roadMap}
+          drivers={drivers}
+          passengers={passengers}
+          trips={trips}
+          tickStart={tickStart}
+          smooth={smooth}
+        />
+      )}
+
+      <TopBar wsStatus={status} />
+
+      <HudPanel
+        stats={stats}
+        driverList={driverList}
+        activeTripsCount={activeTripsCount}
       />
-      <div>
-        {status} · tick {tick}
-      </div>
+
+      <BottomBar tick={tick} smooth={smooth} onSmoothChange={setSmooth} />
     </div>
   );
 };

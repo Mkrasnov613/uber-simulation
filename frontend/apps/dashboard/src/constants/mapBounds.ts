@@ -1,1 +1,0 @@
-export const BOUNDS = { minLat: 52.0, maxLat: 52.4, minLng: 20.8, maxLng: 21.4 };

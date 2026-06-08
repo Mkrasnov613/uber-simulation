@@ -1,6 +1,6 @@
 import { Coordinates, MapBounds, Trip, TripStatus } from "../../types";
 import { project } from "../utils/project";
-import { TRIP_ENROUTE, TRIP_ON_TRIP } from "../utils/theme";
+import { TRIP_ENROUTE, TRIP_ON_TRIP } from "../theme";
 
 export class TripEntity {
   readonly id: string;

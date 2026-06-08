@@ -1,4 +1,4 @@
-import { DriverStatus } from "../../types";
+import { DriverStatus } from "../types";
 
 export const DRIVER_COLORS: Record<DriverStatus, string> = {
   AVAILABLE: "#56697f", // idle - muted grey

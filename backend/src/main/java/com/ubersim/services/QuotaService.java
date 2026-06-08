@@ -46,7 +46,6 @@ public class QuotaService {
     }
 
     public boolean hasSimulationFailed(SimulationConfig config, SimulationStats stats, int currentTick) {
-        //TODO decide the lose parameter
         return stats.getCancelledTrips() > config.getPassengerCount() / 2;
     }
 }
