@@ -1,6 +1,6 @@
 import { Coordinates, Driver, DriverStatus, MapBounds } from "../../types";
 import { project } from "../utils/project";
-import { DRIVER_COLORS } from "../utils/theme";
+import { DRIVER_COLORS } from "../theme";
 
 export class DriverEntity {
   readonly id: string;
@@ -10,18 +10,25 @@ export class DriverEntity {
   prevPos: Coordinates;
   currPos: Coordinates;
 
+  path: string[] = [];
+  pathIndex = 0;
+
   constructor(driver: Driver) {
     this.id = driver.id;
     this.name = driver.name;
     this.status = driver.status;
     this.prevPos = { ...driver.location };
     this.currPos = { ...driver.location }; // on first frame prevPos === currPos
+    this.path = driver.path ?? [];
+    this.pathIndex = driver.pathIndex;
   }
 
   applyDto(driver: Driver) {
     this.prevPos = this.currPos; // last target becomes the new starting point
     this.currPos = { ...driver.location };
     this.status = driver.status;
+    this.path = driver.path ?? [];
+    this.pathIndex = driver.pathIndex;
   }
 
   update(alpha: number): Coordinates {

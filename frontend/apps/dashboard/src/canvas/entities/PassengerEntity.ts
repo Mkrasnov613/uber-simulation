@@ -5,7 +5,7 @@ import {
   PassengerStatus,
 } from "../../types";
 import { project } from "../utils/project";
-import { PASSENGER_COLOR } from "../utils/theme";
+import { PASSENGER_COLOR } from "../theme";
 
 export class PassengerEntity {
   readonly id: string;
