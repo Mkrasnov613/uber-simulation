@@ -9,10 +9,17 @@ import org.springframework.stereotype.Service;
 public class QuotaService {
 
     public SimulationStatus evaluate(SimulationConfig config, SimulationStats stats, int currentTick) {
+        // WIN: quota (rides or earnings) reached
         if (isQuotaMet(config, stats)) {
             return SimulationStatus.COMPLETED;
         }
 
+        // LOSE (early): too many passengers gave up
+        if (hasSimulationFailed(config, stats)) {
+            return SimulationStatus.FAILED;
+        }
+
+        // LOSE (timeout): ran out of ticks without hitting the quota
         if (currentTick >= config.getMaxTicks()) {
             return SimulationStatus.FAILED;
         }
@@ -23,29 +30,23 @@ public class QuotaService {
     public boolean isQuotaMet(SimulationConfig config, SimulationStats stats) {
         if ("RIDES".equals(config.getQuotaMode())) {
             return stats.getCompletedTrips() >= config.getQuotaTarget();
-
         } else if ("EARNINGS".equals(config.getQuotaMode())) {
             return stats.getTotalEarnings() >= config.getQuotaTarget();
         }
         return false;
     }
 
-    public double getProgress(SimulationConfig config, SimulationStats stats) {
-        double current = 0;
-
-        if ("RIDES".equals(config.getQuotaMode())) {
-            current = stats.getCompletedTrips();
-        } else if ("EARNINGS".equals(config.getQuotaMode())) {
-            current = stats.getTotalEarnings();
-        }
-
-        if (config.getQuotaTarget() <= 0) return 1.0;
-
-        double progress = current / config.getQuotaTarget();
-        return Math.min(progress, 1.0);
+    // the "lose" parameter: fail once abandonment crosses the configured limit
+    public boolean hasSimulationFailed(SimulationConfig config, SimulationStats stats) {
+        return stats.getCancelledTrips() >= config.getMaxAbandoned();
     }
 
-    public boolean hasSimulationFailed(SimulationConfig config, SimulationStats stats, int currentTick) {
-        return stats.getCancelledTrips() > config.getPassengerCount() / 2;
+    public double getProgress(SimulationConfig config, SimulationStats stats) {
+        double current = "EARNINGS".equals(config.getQuotaMode())
+                ? stats.getTotalEarnings()
+                : stats.getCompletedTrips();
+
+        if (config.getQuotaTarget() <= 0) return 1.0;
+        return Math.min(current / config.getQuotaTarget(), 1.0);
     }
 }
