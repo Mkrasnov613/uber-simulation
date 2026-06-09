@@ -54,25 +54,21 @@ public class SimulationEngine {
 
     public void tick() {
         if (state.isRunning()) {
-
-            List<Passenger> abandonedPassengers;
-            List<Trip> newTrips;
-            List<Trip> completedTrips;
-            //I dont know if thats optimal but sure
-            Map<String, Driver> driversWithID = new HashMap<>();
-            Map<String, Passenger> passengersWithID = new HashMap<>();
-            for (Driver driver : state.getDrivers()) {
-                driversWithID.put(driver.getId(), driver);
-            }
-            for (Passenger passenger : state.getPassengers()) {
-                passengersWithID.put(passenger.getId(), passenger);
-            }
-
-            double speedOfDrivers = state.getConfig().getDriverSpeedKmPerTick();
             state.setTick(state.getTick() + 1);
 
-            abandonedPassengers = failureDetector.detectAbandoned(state.getPassengers());
+            // 1. continuous demand — fresh passengers each tick
+            List<Passenger> fresh = spawnService.spawnPassengers(state.getConfig().getSpawnPerTick());
+            state.getPassengers().addAll(fresh);
 
+            Map<String, Driver> driversWithID = new HashMap<>();
+            Map<String, Passenger> passengersWithID = new HashMap<>();
+            for (Driver driver : state.getDrivers()) driversWithID.put(driver.getId(), driver);
+            for (Passenger passenger : state.getPassengers()) passengersWithID.put(passenger.getId(), passenger);
+
+            double speedOfDrivers = state.getConfig().getDriverSpeedKmPerTick();
+
+            // 2. abandonment
+            List<Passenger> abandonedPassengers = failureDetector.detectAbandoned(state.getPassengers());
             for (Passenger p : abandonedPassengers) {
                 Trip trip = state.getActiveTrips().stream()
                         .filter(t -> t.getPassengerId().equals(p.getId()))
@@ -84,16 +80,22 @@ public class SimulationEngine {
                 }
             }
 
-            newTrips = matchingService.matchAll(state.getPassengers(), state.getDrivers(), state.getTick());
+            // 3. matching + movement
+            List<Trip> newTrips = matchingService.matchAll(state.getPassengers(), state.getDrivers(), state.getTick());
             state.getActiveTrips().addAll(newTrips);
 
-            completedTrips = tripService.processTick(state.getActiveTrips(), driversWithID, passengersWithID, speedOfDrivers, state.getTick());
+            List<Trip> completedTrips = tripService.processTick(
+                    state.getActiveTrips(), driversWithID, passengersWithID, speedOfDrivers, state.getTick());
             state.getActiveTrips().removeAll(completedTrips);
 
+            // 4. stats + outcome
             state.getStats().update(state.getDrivers(), state.getPassengers(), newTrips, completedTrips, abandonedPassengers);
 
             SimulationStatus status = quotaService.evaluate(state.getConfig(), state.getStats(), state.getTick());
             state.setStatus(status);
+
+            // 5. cleanup — drop passengers that are done so the list & WS payload stay bounded
+            state.getPassengers().removeIf(p -> !p.isActive());
         }
     }
 

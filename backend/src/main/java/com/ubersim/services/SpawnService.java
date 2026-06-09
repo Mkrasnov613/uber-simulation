@@ -36,32 +36,40 @@ public class SpawnService {
         return drivers;
     }
 
+    public List<Passenger> spawnPassengers(){
+        return spawnPassengers(config.getPassengerCount());
+    }
 
-    public List<Passenger> spawnPassengers() {
+    public List<Passenger> spawnPassengers(int count) {
         List<Passenger> passengers = new ArrayList<>();
-
-        for (int i = 0; i < config.getPassengerCount(); i++) {
-            Passenger passenger = new Passenger();
-
-            String pickup = graph.randomNodeId();
-            String dropoff = graph.randomNodeId();
-
-            while (dropoff.equals(pickup)) {                // pickup must differ from dropoff
-                dropoff = graph.randomNodeId();
-            }
-
-            passenger.setPickupNodeId(pickup);
-            passenger.setDropoffNodeId(dropoff);
-
-            passenger.setPickupLocation(graph.node(pickup).location());
-            passenger.setDropoffLocation(graph.node(dropoff).location());
-
-            passenger.setWaiting();
-            passenger.setMaxWaitTicks(config.getMaxPassengerWaitTicks());
-            passenger.setWaitingTicks(0);
-            passenger.AssignUUID();
-            passengers.add(passenger);
+        for (int i = 0; i < count; i++) {
+            passengers.add(spawnOnePassenger());
         }
         return passengers;
     }
+
+    private Passenger spawnOnePassenger() {
+        Passenger passenger = new Passenger();
+
+        String pickup = graph.randomNodeId();
+        String dropoff = graph.randomNodeId();
+
+        while (dropoff.equals(pickup)) {                // pickup must differ from dropoff
+            dropoff = graph.randomNodeId();
+        }
+
+        passenger.setPickupNodeId(pickup);
+        passenger.setDropoffNodeId(dropoff);
+
+        passenger.setPickupLocation(graph.node(pickup).location());
+        passenger.setDropoffLocation(graph.node(dropoff).location());
+
+        passenger.setWaiting();
+        passenger.setMaxWaitTicks(config.getMaxPassengerWaitTicks());
+        passenger.setWaitingTicks(0);
+        passenger.AssignUUID();
+
+        return passenger;
+    }
+
 }
