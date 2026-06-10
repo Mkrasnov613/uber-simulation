@@ -45,6 +45,7 @@ public class SimulationState {
     // Returns hardcoded data so the FE connection test passes
     public static SimulationState stub() {
         return SimulationState.builder()
+                .status(SimulationStatus.IDLE)
                 .running(false)
                 .tick(0)
                 .drivers(List.of())

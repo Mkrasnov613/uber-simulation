@@ -39,6 +39,12 @@ public class SimulationController {
         return ResponseEntity.ok(engine.getState());
     }
 
+    @PostMapping("/resume")
+    public ResponseEntity<SimulationState> resume() {
+        engine.resume();
+        return ResponseEntity.ok(engine.getState());
+    }
+
     @PostMapping("/reset")
     public ResponseEntity<SimulationState> reset() {
         engine.reset();

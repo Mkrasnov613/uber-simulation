@@ -7,11 +7,12 @@ interface Props {
   stats: SimulationStats | null;
   driverList: Driver[];
   activeTripsCount: number;
+  visible: boolean;
 }
 
 export const HUD_WIDTH = 280;
 
-export const HudPanel = ({ stats, driverList, activeTripsCount }: Props) => {
+export const HudPanel = ({ stats, driverList, activeTripsCount, visible }: Props) => {
   if (!stats) return null;
 
   return (
@@ -29,6 +30,9 @@ export const HudPanel = ({ stats, driverList, activeTripsCount }: Props) => {
         fontFamily: FONT,
         zIndex: 20,
         overflow: "hidden",
+        transform: visible ? "translateX(0)" : `translateX(${HUD_WIDTH}px)`,
+        transition: "transform 0.25s ease",
+        pointerEvents: visible ? "auto" : "none",
       }}
     >
       {/* Header */}

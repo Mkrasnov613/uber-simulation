@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { DriverEntity } from "../canvas/entities/DriverEntity";
-import { Driver, SimulationState, SimulationStats } from "../types";
+import { Driver, SimulationConfig, SimulationState, SimulationStats } from "../types";
 import { PassengerEntity } from "../canvas/entities/PassengerEntity";
 import { TripEntity } from "../canvas/entities/TripEntity";
 import { reconcileMap } from "../canvas/utils/reconcileMap";
+import { SimulationStatus } from "../types/statuses";
 
 export type WsStatus = "connecting" | "open" | "closed";
 
@@ -15,7 +16,10 @@ export const useSimulation = ({ url }: { url: string }) => {
   const tickStart = useRef(performance.now());
 
   const [status, setStatus] = useState<WsStatus>("connecting");
+  const [simStatus, setSimStatus] = useState<SimulationStatus>(SimulationStatus.IDLE);
+  const [running, setRunning] = useState(false);
   const [tick, setTick] = useState<number>(0);
+  const [config, setConfig] = useState<SimulationConfig | null>(null);
   const [stats, setStats] = useState<SimulationStats | null>(null);
   const [driverList, setDriverList] = useState<Driver[]>([]);
   const [activeTripsCount, setActiveTripsCount] = useState(0);
@@ -42,7 +46,10 @@ export const useSimulation = ({ url }: { url: string }) => {
       );
       reconcileMap(trips.current, state.activeTrips, (t) => new TripEntity(t));
       tickStart.current = performance.now();
+      setSimStatus(state.status ?? SimulationStatus.IDLE);
+      setRunning(state.running);
       setTick(state.tick);
+      setConfig(state.config);
       setStats(state.stats);
       setDriverList(state.drivers);
       setActiveTripsCount(state.activeTrips.length);
@@ -57,7 +64,10 @@ export const useSimulation = ({ url }: { url: string }) => {
     trips,
     tickStart,
     status,
+    simStatus,
+    running,
     tick,
+    config,
     stats,
     driverList,
     activeTripsCount,

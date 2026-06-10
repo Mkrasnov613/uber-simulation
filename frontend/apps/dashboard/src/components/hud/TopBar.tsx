@@ -28,18 +28,14 @@ export const TopBar = ({ wsStatus }: Props) => {
     <div
       style={{
         position: "absolute",
-        top: 0,
-        left: 0,
-        right: HUD_WIDTH,
+        inset:0,
         height: 56,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
         padding: "0 16px",
-        background:
-          "linear-gradient(180deg, rgba(8,12,20,0.97) 0%, rgba(8,12,20,0) 100%)",
         fontFamily: FONT,
-        zIndex: 10,
+        zIndex: 100,
         pointerEvents: "none",
       }}
     >

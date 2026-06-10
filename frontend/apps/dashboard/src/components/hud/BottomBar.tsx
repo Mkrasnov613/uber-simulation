@@ -1,6 +1,7 @@
 import { CSSProperties, useState } from "react";
 import { COLORS, FONT } from "../../theme";
 import { HUD_WIDTH } from "./HudPanel";
+import { SimulationStatus } from "../../types/statuses";
 
 const API = "http://localhost:8080/api/simulation";
 const post = (path: string) =>
@@ -15,27 +16,50 @@ const LEGEND = [
 
 interface Props {
   tick: number;
+  maxTicks: number;
+  running: boolean;
+  simStatus: SimulationStatus;
   smooth: boolean;
   onSmoothChange: (v: boolean) => void;
+  hudVisible: boolean;
+  onHudToggle: () => void;
 }
 
-export const BottomBar = ({ tick, smooth, onSmoothChange }: Props) => {
-  const [paused, setPaused] = useState(false);
-  const [speed, setSpeed] = useState(1);
+export const BottomBar = ({
+  tick,
+  maxTicks,
+  running,
+  simStatus,
+  smooth,
+  onSmoothChange,
+  hudVisible,
+  onHudToggle,
+}: Props) => {
+  const [speed, setSpeed] = useState<1 | 2 | 4>(1);
 
-  const togglePause = async () => {
-    await post(paused ? "start" : "stop");
-    setPaused((p) => !p);
-  };
+  const isFinished =
+    simStatus === SimulationStatus.COMPLETED || simStatus === SimulationStatus.FAILED;
 
-  const handleReset = () => post("reset");
-
-  const btn = (active: boolean): CSSProperties => ({
+  const btn = (active: boolean, danger?: boolean): CSSProperties => ({
     padding: "4px 10px",
     borderRadius: 4,
-    background: active ? COLORS.btnActiveBg : COLORS.btnBg,
-    border: `1px solid ${active ? COLORS.btnActiveBorder : COLORS.btnBorder}`,
-    color: active ? COLORS.btnActiveText : COLORS.textSecondary,
+    background: danger
+      ? "rgba(239, 68, 68, 0.1)"
+      : active
+        ? COLORS.btnActiveBg
+        : COLORS.btnBg,
+    border: `1px solid ${
+      danger
+        ? "rgba(239, 68, 68, 0.3)"
+        : active
+          ? COLORS.btnActiveBorder
+          : COLORS.btnBorder
+    }`,
+    color: danger
+      ? COLORS.red
+      : active
+        ? COLORS.btnActiveText
+        : COLORS.textSecondary,
     fontSize: 10,
     fontWeight: 600,
     fontFamily: FONT,
@@ -44,15 +68,15 @@ export const BottomBar = ({ tick, smooth, onSmoothChange }: Props) => {
     userSelect: "none",
   });
 
-  const iconBtn = (): CSSProperties => ({
-    ...btn(false),
+  const iconBtn = (active: boolean): CSSProperties => ({
+    ...btn(active),
     width: 28,
     height: 28,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     padding: 0,
-    fontSize: 12,
+    fontSize: 13,
   });
 
   return (
@@ -61,9 +85,10 @@ export const BottomBar = ({ tick, smooth, onSmoothChange }: Props) => {
         position: "absolute",
         bottom: 0,
         left: 0,
-        right: HUD_WIDTH,
+        right: hudVisible ? HUD_WIDTH : 0,
         fontFamily: FONT,
-        zIndex: 10,
+        zIndex: 100,
+        transition: "right 0.25s ease",
       }}
     >
       {/* Controls row */}
@@ -77,10 +102,34 @@ export const BottomBar = ({ tick, smooth, onSmoothChange }: Props) => {
             "linear-gradient(0deg, rgba(8,12,20,0.97) 0%, rgba(8,12,20,0) 100%)",
         }}
       >
-        <button onClick={togglePause} style={iconBtn()}>
-          {paused ? "▶" : "⏸"}
-        </button>
+        {/* Controls — hidden on IDLE (SimulationSetup modal handles it) and when finished */}
+        {!isFinished && simStatus !== SimulationStatus.IDLE && (
+          <>
+            {running ? (
+              <button onClick={() => post("stop")} style={btn(false, true)}>
+                STOP
+              </button>
+            ) : (
+              <button onClick={() => post("resume")} style={btn(true)}>
+                RESUME
+              </button>
+            )}
+            <button onClick={() => post("reset")} style={btn(false)}>
+              RESET
+            </button>
 
+            <div
+              style={{
+                width: 1,
+                height: 16,
+                background: COLORS.panelBorder,
+                margin: "0 2px",
+              }}
+            />
+          </>
+        )}
+
+        {/* Speed */}
         {([1, 2, 4] as const).map((s) => (
           <button key={s} onClick={() => setSpeed(s)} style={btn(speed === s)}>
             {s}×
@@ -103,20 +152,25 @@ export const BottomBar = ({ tick, smooth, onSmoothChange }: Props) => {
           TICK
         </button>
 
+        {/* Tick counter */}
         <div
           style={{
-            width: 1,
-            height: 16,
-            background: COLORS.panelBorder,
-            margin: "0 2px",
+            marginLeft: 8,
+            padding: "3px 9px",
+            borderRadius: 4,
+            background: "rgba(255,255,255,0.04)",
+            border: `1px solid ${COLORS.panelBorder}`,
+            color: COLORS.textSecondary,
+            fontSize: 10,
+            fontWeight: 600,
+            letterSpacing: "0.06em",
+            userSelect: "none",
           }}
-        />
+        >
+          {tick}/{maxTicks}
+        </div>
 
-        <button onClick={handleReset} style={btn(false)}>
-          RESET
-        </button>
-
-        {/* Legend */}
+        {/* Spacer + legend */}
         <div
           style={{
             marginLeft: "auto",
@@ -150,6 +204,15 @@ export const BottomBar = ({ tick, smooth, onSmoothChange }: Props) => {
             </div>
           ))}
         </div>
+
+        {/* HUD toggle */}
+        <button
+          onClick={onHudToggle}
+          style={iconBtn(hudVisible)}
+          title={hudVisible ? "Hide HUD" : "Show HUD"}
+        >
+          {hudVisible ? "◨" : "◧"}
+        </button>
       </div>
 
       {/* Status bar */}
@@ -173,7 +236,7 @@ export const BottomBar = ({ tick, smooth, onSmoothChange }: Props) => {
           jvm://uber-sim/dispatcher · ws-frame {String(tick).padStart(6, "0")}
         </span>
         <span style={{ color: COLORS.textMuted, fontSize: 9 }}>
-          tick {tick} · {smooth ? "smooth" : "tick"}@{speed}× · t+{tick}s
+          {simStatus} · {smooth ? "smooth" : "tick"}@{speed}× · tick {tick}/{maxTicks}
         </span>
       </div>
     </div>

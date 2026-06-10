@@ -37,8 +37,8 @@ public class SimulationEngine {
     public void start(SimulationConfig config) {
         SimulationConfig effectiveConfig = (config != null) ? config : simulationConfig;
 
-        List<Driver> drivers = spawnService.spawnDrivers();
-        List<Passenger> passengers = spawnService.spawnPassengers();
+        List<Driver> drivers = spawnService.spawnDrivers(effectiveConfig);
+        List<Passenger> passengers = spawnService.spawnPassengers(effectiveConfig);
 
         this.state = SimulationState.builder()
                 .status(SimulationStatus.RUNNING)
@@ -57,7 +57,7 @@ public class SimulationEngine {
             state.setTick(state.getTick() + 1);
 
             // 1. continuous demand — fresh passengers each tick
-            List<Passenger> fresh = spawnService.spawnPassengers(state.getConfig().getSpawnPerTick());
+            List<Passenger> fresh = spawnService.spawnPassengers(state.getConfig().getSpawnPerTick(), state.getConfig());
             state.getPassengers().addAll(fresh);
 
             Map<String, Driver> driversWithID = new HashMap<>();
@@ -93,6 +93,9 @@ public class SimulationEngine {
 
             SimulationStatus status = quotaService.evaluate(state.getConfig(), state.getStats(), state.getTick());
             state.setStatus(status);
+            if (status == SimulationStatus.COMPLETED || status == SimulationStatus.FAILED) {
+                stop();
+            }
 
             // 5. cleanup — drop passengers that are done so the list & WS payload stay bounded
             state.getPassengers().removeIf(p -> !p.isActive());
@@ -101,6 +104,12 @@ public class SimulationEngine {
 
     public void stop() {
         state.setRunning(false);
+    }
+
+    public void resume() {
+        if (state.getStatus() == SimulationStatus.RUNNING) {
+            state.setRunning(true);
+        }
     }
 
     public void reset() {
