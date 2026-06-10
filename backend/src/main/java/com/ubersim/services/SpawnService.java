@@ -11,15 +11,13 @@ import java.util.List;
 @Service
 public class SpawnService {
 
-    private final SimulationConfig config;
     private final RoadGraph graph;
 
-    public SpawnService(SimulationConfig config, RoadGraph graph) {
-        this.config = config;
+    public SpawnService(RoadGraph graph) {
         this.graph = graph;
     }
 
-    public List<Driver> spawnDrivers() {
+    public List<Driver> spawnDrivers(SimulationConfig config) {
         List<Driver> drivers = new ArrayList<>();
 
         for (int i = 0; i < config.getDriverCount(); i++) {
@@ -36,19 +34,19 @@ public class SpawnService {
         return drivers;
     }
 
-    public List<Passenger> spawnPassengers(){
-        return spawnPassengers(config.getPassengerCount());
+    public List<Passenger> spawnPassengers(SimulationConfig config) {
+        return spawnPassengers(config.getPassengerCount(), config);
     }
 
-    public List<Passenger> spawnPassengers(int count) {
+    public List<Passenger> spawnPassengers(int count, SimulationConfig config) {
         List<Passenger> passengers = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            passengers.add(spawnOnePassenger());
+            passengers.add(spawnOnePassenger(config));
         }
         return passengers;
     }
 
-    private Passenger spawnOnePassenger() {
+    private Passenger spawnOnePassenger(SimulationConfig config) {
         Passenger passenger = new Passenger();
 
         String pickup = graph.randomNodeId();
@@ -66,6 +64,7 @@ public class SpawnService {
 
         passenger.setWaiting();
         passenger.setMaxWaitTicks(config.getMaxPassengerWaitTicks());
+
         passenger.setWaitingTicks(0);
         passenger.AssignUUID();
 

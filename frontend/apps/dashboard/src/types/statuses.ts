@@ -23,10 +23,10 @@ export enum TripStatus {
 }
 
 export enum SimulationStatus {
-  AVAILABLE = "AVAILABLE",
-  EN_ROUTE_TO_PASSENGER = "EN_ROUTE_TO_PASSENGER",
-  ON_TRIP = "ON_TRIP",
-  OFFLINE = "OFFLINE",
+  IDLE = "IDLE",
+  RUNNING = "RUNNING",
+  COMPLETED = "COMPLETED",
+  FAILED = "FAILED",
 }
 
 export enum QuotaMode {

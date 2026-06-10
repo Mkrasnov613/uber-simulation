@@ -4,6 +4,8 @@ import lombok.*;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class SimulationConfig {
     private int driverCount;
     private int passengerCount;
