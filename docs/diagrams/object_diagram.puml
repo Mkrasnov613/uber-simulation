@@ -1,0 +1,208 @@
+@startuml object_diagram
+skinparam object {
+    BackgroundColor White
+    BorderColor #333333
+    ArrowColor #333333
+    FontName Arial
+}
+skinparam linetype ortho
+
+title Uber Simulation – Diagram Obiektów\n(Migawka stanu w trakcie trwania symulacji, tick=42)
+
+' ─── SimulationState ──────────────────────────────────────────────
+object "sim : SimulationState" as sim {
+    status = RUNNING
+    running = true
+    tick = 42
+}
+
+object "config : SimulationConfig" as config {
+    driverCount = 30
+    passengerCount = 15
+    spawnPerTick = 1
+    maxPassengerWaitTicks = 20
+    maxAbandoned = 20
+    driverSpeedKmPerTick = 0.1
+    quotaMode = "RIDES"
+    quotaTarget = 30.0
+    maxTicks = 400
+}
+
+object "stats : SimulationStats" as stats {
+    totalTrips = 18
+    completedTrips = 12
+    cancelledTrips = 2
+    activeDrivers = 28
+    availableDrivers = 14
+    waitingPassengers = 3
+    averageWaitTimeSeconds = 4.7
+    averageFare = 9.25
+    totalEarnings = 111.0
+}
+
+' ─── Drivers ──────────────────────────────────────────────────────
+object "driver1 : Driver" as d1 {
+    id = "d-0001"
+    name = "Adam K."
+    status = ON_TRIP
+    rating = 4.8
+    totalTripsCompleted = 7
+    totalEarnings = 64.75
+    currentTripId = "t-0015"
+    currentNodeId = "N-12"
+    pathIndex = 3
+}
+
+object "driver2 : Driver" as d2 {
+    id = "d-0002"
+    name = "Beata M."
+    status = AVAILABLE
+    rating = 4.6
+    totalTripsCompleted = 5
+    totalEarnings = 46.20
+    currentTripId = null
+    currentNodeId = "N-07"
+    pathIndex = 0
+}
+
+object "driver3 : Driver" as d3 {
+    id = "d-0003"
+    name = "Cezary W."
+    status = EN_ROUTE_TO_PASSENGER
+    rating = 4.9
+    totalTripsCompleted = 3
+    totalEarnings = 27.50
+    currentTripId = "t-0016"
+    currentNodeId = "N-21"
+    pathIndex = 1
+}
+
+' ─── Passengers ───────────────────────────────────────────────────
+object "passenger1 : Passenger" as p1 {
+    id = "p-0010"
+    name = "Ewa N."
+    status = IN_TRIP
+    waitingTicks = 0
+    maxWaitTicks = 20
+    currentTripId = "t-0015"
+    pickupNodeId = "N-05"
+    dropoffNodeId = "N-33"
+}
+
+object "passenger2 : Passenger" as p2 {
+    id = "p-0011"
+    name = "Filip O."
+    status = WAITING
+    waitingTicks = 7
+    maxWaitTicks = 20
+    currentTripId = null
+    pickupNodeId = "N-17"
+    dropoffNodeId = "N-42"
+}
+
+object "passenger3 : Passenger" as p3 {
+    id = "p-0012"
+    name = "Grażyna P."
+    status = MATCHED
+    waitingTicks = 3
+    maxWaitTicks = 20
+    currentTripId = "t-0016"
+    pickupNodeId = "N-22"
+    dropoffNodeId = "N-08"
+}
+
+' ─── Trips ────────────────────────────────────────────────────────
+object "trip1 : Trip" as t1 {
+    id = "t-0015"
+    status = IN_PROGRESS
+    driverId = "d-0001"
+    passengerId = "p-0010"
+    fare = 11.50
+    distanceKm = 2.60
+    requestedAtTick = 35
+    matchedAtTick = 36
+    startedAtTick = 40
+    completedAtTick = 0
+}
+
+object "trip2 : Trip" as t2 {
+    id = "t-0016"
+    status = DRIVER_ARRIVING
+    driverId = "d-0003"
+    passengerId = "p-0012"
+    fare = 0.0
+    distanceKm = 1.80
+    requestedAtTick = 39
+    matchedAtTick = 40
+    startedAtTick = 0
+    completedAtTick = 0
+}
+
+' ─── Coordinates ──────────────────────────────────────────────────
+object "loc_d1 : Coordinates" as loc1 {
+    latitude = 52.2312
+    longitude = 21.0045
+}
+
+object "loc_d2 : Coordinates" as loc2 {
+    latitude = 52.2180
+    longitude = 20.9760
+}
+
+object "pickup_p1 : Coordinates" as pkl1 {
+    latitude = 52.2201
+    longitude = 21.0100
+}
+
+object "dropoff_p1 : Coordinates" as drp1 {
+    latitude = 52.2890
+    longitude = 21.0350
+}
+
+' ─── Map / Graph ──────────────────────────────────────────────────
+object "roadGraph : RoadGraph" as rg {
+    nodeCount = 100
+    edgeCount = 180
+}
+
+object "node_N12 : Node" as n12 {
+    id = "N-12"
+}
+
+object "node_N07 : Node" as n07 {
+    id = "N-07"
+}
+
+object "edge_N12_N33 : Edge" as e1 {
+    to = "N-33"
+    weightKm = 0.42
+}
+
+' ─── Relationships ────────────────────────────────────────────────
+sim *-- config : config
+sim *-- stats  : stats
+sim o-- d1     : drivers
+sim o-- d2     : drivers
+sim o-- d3     : drivers
+sim o-- p1     : passengers
+sim o-- p2     : passengers
+sim o-- p3     : passengers
+sim o-- t1     : activeTrips
+sim o-- t2     : activeTrips
+
+d1 *-- loc1   : location
+d2 *-- loc2   : location
+
+p1 *-- pkl1   : pickupLocation
+p1 *-- drp1   : dropoffLocation
+
+t1 --> d1     : references driverId
+t1 --> p1     : references passengerId
+t2 --> d3     : references driverId
+t2 --> p3     : references passengerId
+
+rg o-- n12    : nodes
+rg o-- n07    : nodes
+n12 o-- e1    : adjacency
+
+@enduml

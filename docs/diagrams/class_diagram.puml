@@ -1,0 +1,339 @@
+@startuml class_diagram
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam class {
+    BackgroundColor White
+    BorderColor #333333
+    ArrowColor #333333
+    FontName Arial
+}
+skinparam note {
+    BackgroundColor #FFFFC0
+    BorderColor #999999
+}
+
+title Uber Simulation – Diagram Klas
+
+' ─── Interfaces ───────────────────────────────────────────────────
+interface "Stateful<T extends Enum<T>>" as Stateful {
+    + getStatus(): T
+    + setStatus(status: T): void
+    + isActive(): boolean
+}
+
+' ─── Abstract Base ────────────────────────────────────────────────
+abstract class SimulationEntity {
+    # id: String
+    # name: String
+    + assignUUID(): void
+}
+
+' ─── Enums ────────────────────────────────────────────────────────
+enum DriverStatus {
+    AVAILABLE
+    EN_ROUTE_TO_PASSENGER
+    ON_TRIP
+    OFFLINE
+}
+
+enum PassengerStatus {
+    WAITING
+    MATCHED
+    IN_TRIP
+    COMPLETED
+    ABANDONED
+}
+
+enum TripStatus {
+    REQUESTED
+    MATCHED
+    DRIVER_ARRIVING
+    IN_PROGRESS
+    COMPLETED
+    CANCELLED
+}
+
+enum SimulationStatus {
+    IDLE
+    RUNNING
+    COMPLETED
+    FAILED
+}
+
+' ─── Value Objects ────────────────────────────────────────────────
+class Coordinates {
+    + latitude: double
+    + longitude: double
+    + distanceTo(other: Coordinates): double
+    + stepToward(target: Coordinates, stepKm: double): Coordinates
+    + {static} randomCoordinates(): Coordinates
+}
+
+' ─── Domain Entities ──────────────────────────────────────────────
+class Driver {
+    + status: DriverStatus
+    + location: Coordinates
+    + rating: double
+    + totalTripsCompleted: int
+    + totalEarnings: double
+    + currentTripId: String
+    + currentNodeId: String
+    + path: List<String>
+    + pathIndex: int
+    --
+    + isAvailable(): boolean
+    + assignToTrip(tripId: String): void
+    + startTrip(): void
+    + completeTrip(fare: double): void
+    + moveToward(target: Coordinates, stepKm: double): void
+}
+
+class Passenger {
+    + status: PassengerStatus
+    + pickupLocation: Coordinates
+    + dropoffLocation: Coordinates
+    + waitingTicks: int
+    + maxWaitTicks: int
+    + currentTripId: String
+    + pickupNodeId: String
+    + dropoffNodeId: String
+    --
+    + isActive(): boolean
+    + isWaiting(): boolean
+    + hasExceededWaitLimit(): boolean
+    + incrementWait(): void
+    + matchToTrip(tripId: String): void
+    + startRide(): void
+    + completeRide(): void
+    + abandon(): void
+}
+
+class Trip {
+    + driverId: String
+    + passengerId: String
+    + status: TripStatus
+    + pickupLocation: Coordinates
+    + dropoffLocation: Coordinates
+    + fare: double
+    + distanceKm: double
+    + requestedAtTick: int
+    + matchedAtTick: int
+    + startedAtTick: int
+    + completedAtTick: int
+    --
+    + isActive(): boolean
+    + getWaitDuration(): int
+    + getTripDuration(): int
+    + match(tick: int): void
+    + driverEnRoute(): void
+    + start(tick: int): void
+    + complete(tick: int): void
+    + cancel(): void
+    + calculateFare(): double
+}
+
+' ─── Config & Stats ───────────────────────────────────────────────
+class SimulationConfig {
+    + driverCount: int
+    + passengerCount: int
+    + spawnPerTick: int
+    + maxPassengerWaitTicks: int
+    + maxAbandoned: int
+    + driverSpeedKmPerTick: double
+    + quotaMode: String
+    + quotaTarget: double
+    + maxTicks: int
+    --
+    + {static} defaults(): SimulationConfig
+}
+
+class SimulationStats {
+    + totalTrips: int
+    + completedTrips: int
+    + cancelledTrips: int
+    + activeDrivers: int
+    + availableDrivers: int
+    + waitingPassengers: int
+    + averageWaitTimeSeconds: double
+    + averageTripDurationSeconds: double
+    + averageFare: double
+    + totalEarnings: double
+    --
+    + getCancellationRate(): double
+    + getCompletionRate(): double
+    + update(...): void
+    + {static} empty(): SimulationStats
+}
+
+class SimulationState {
+    + status: SimulationStatus
+    + running: boolean
+    + tick: int
+    --
+    + getAvailableDrivers(): List<Driver>
+    + getWaitingPassengers(): List<Passenger>
+    + isFinished(): boolean
+    + {static} stub(): SimulationState
+}
+
+' ─── Map / Graph ──────────────────────────────────────────────────
+class RoadGraph {
+    - nodes: Map<String, Node>
+    - adjacency: Map<String, List<Edge>>
+    --
+    + findPath(startId: String, targetId: String): List<String>
+    + neighbors(nodeId: String): List<Edge>
+    + node(nodeId: String): Node
+    + randomNodeId(): String
+    + toDto(): MapDto
+    + {static} generateGrid(...): RoadGraph
+}
+
+class Node <<record>> {
+    + id: String
+    + location: Coordinates
+}
+
+class Edge <<record>> {
+    + to: String
+    + weightKm: double
+}
+
+class MapDto {
+    + nodes: List<NodeDto>
+    + edges: List<EdgeDto>
+}
+
+class NodeDto {
+    + id: String
+    + lat: double
+    + lng: double
+}
+
+class EdgeDto {
+    + from: String
+    + to: String
+}
+
+' ─── Services ─────────────────────────────────────────────────────
+class SimulationEngine <<@Component>> {
+    - state: SimulationState
+    --
+    + start(config: SimulationConfig): void
+    + tick(): void
+    + stop(): void
+    + resume(): void
+    + reset(): void
+    + getState(): SimulationState
+}
+
+class SimulationTicker <<@Scheduled>> {
+    + tickAndBroadcast(): void
+}
+
+class SpawnService <<@Service>> {
+    + spawnDrivers(config: SimulationConfig): List<Driver>
+    + spawnPassengers(config: SimulationConfig): List<Passenger>
+    + spawnOnePassenger(config: SimulationConfig): Passenger
+}
+
+class MatchingService <<@Service>> {
+    + findNearestDriver(passenger: Passenger, drivers: List<Driver>): Optional<Driver>
+    + createTrip(driver: Driver, passenger: Passenger, tick: int): Trip
+    + matchAll(passengers: List<Passenger>, drivers: List<Driver>, tick: int): List<Trip>
+}
+
+class MovementService <<@Service>> {
+    + routeTo(driver: Driver, fromNodeId: String, toNodeId: String): void
+    + advance(driver: Driver, stepKm: double): boolean
+}
+
+class TripService <<@Service>> {
+    + processTick(trips: List<Trip>, driversById: Map, passengersById: Map, speed: double, tick: int): List<Trip>
+    + cancelTrip(trip: Trip, driver: Driver, passenger: Passenger): void
+}
+
+class QuotaService <<@Service>> {
+    + evaluate(config: SimulationConfig, stats: SimulationStats, tick: int): SimulationStatus
+    + isQuotaMet(config: SimulationConfig, stats: SimulationStats): boolean
+    + hasSimulationFailed(config: SimulationConfig, stats: SimulationStats): boolean
+    + getProgress(config: SimulationConfig, stats: SimulationStats): double
+}
+
+class FailureDetector <<@Service>> {
+    + detectAbandoned(passengers: List<Passenger>): List<Passenger>
+}
+
+' ─── Controllers ──────────────────────────────────────────────────
+class SimulationController <<@RestController>> {
+    + getState(): SimulationState
+    + start(config: SimulationConfig): SimulationState
+    + tick(): SimulationState
+    + stop(): SimulationState
+    + resume(): SimulationState
+    + reset(): SimulationState
+}
+
+class MapController <<@RestController>> {
+    + getMap(): MapDto
+}
+
+class SimulationWebSocketHandler <<@Component>> {
+    - sessions: CopyOnWriteArraySet<Session>
+    + broadcast(state: SimulationState): void
+}
+
+' ─── Inheritance ──────────────────────────────────────────────────
+SimulationEntity <|-- Driver
+SimulationEntity <|-- Passenger
+SimulationEntity <|-- Trip
+
+' ─── Interface Implementations ────────────────────────────────────
+Stateful <|.. Driver
+Stateful <|.. Passenger
+Stateful <|.. Trip
+
+' ─── Enum Associations ────────────────────────────────────────────
+Driver --> DriverStatus : status
+Passenger --> PassengerStatus : status
+Trip --> TripStatus : status
+SimulationState --> SimulationStatus : status
+
+' ─── Composition / Aggregation ────────────────────────────────────
+Driver *-- Coordinates : location
+Passenger *-- Coordinates : pickup/dropoff
+Trip *-- Coordinates : pickup/dropoff
+
+SimulationState "1" o-- "*" Driver : drivers
+SimulationState "1" o-- "*" Passenger : passengers
+SimulationState "1" o-- "*" Trip : activeTrips
+SimulationState "1" *-- "1" SimulationConfig : config
+SimulationState "1" *-- "1" SimulationStats : stats
+
+RoadGraph "1" *-- "*" Node : nodes
+RoadGraph "1" *-- "*" Edge : edges
+Node *-- Coordinates : location
+
+MapDto "1" *-- "*" NodeDto : nodes
+MapDto "1" *-- "*" EdgeDto : edges
+
+' ─── Service Dependencies ─────────────────────────────────────────
+SimulationEngine "1" *-- "1" SimulationState : state
+SimulationEngine --> SpawnService
+SimulationEngine --> MatchingService
+SimulationEngine --> TripService
+SimulationEngine --> QuotaService
+SimulationEngine --> FailureDetector
+
+SimulationTicker --> SimulationEngine
+SimulationTicker --> SimulationWebSocketHandler
+
+MatchingService --> MovementService
+TripService --> MovementService
+MovementService --> RoadGraph
+SpawnService --> RoadGraph
+
+SimulationController --> SimulationEngine
+MapController --> RoadGraph
+
+@enduml

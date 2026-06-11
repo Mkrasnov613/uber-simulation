@@ -1,0 +1,125 @@
+@startuml state_machine_diagram
+skinparam state {
+    BackgroundColor White
+    BorderColor #333333
+    ArrowColor #333333
+    FontName Arial
+    StartColor #333333
+    EndColor #333333
+}
+skinparam note {
+    BackgroundColor #FFFFC0
+    BorderColor #999999
+    FontName Arial
+}
+
+title Uber Simulation – Diagram Maszyny Stanów
+
+' ═══════════════════════════════════════════════════════════════════
+' 1. SYMULACJA (SimulationStatus)
+' ═══════════════════════════════════════════════════════════════════
+
+state "Symulacja (SimulationStatus)" as Sim {
+
+    IDLE : Silnik zainicjalizowany,\nbrak aktywnych danych
+
+    RUNNING : Tick co 700ms,\npasażerowie i kierowcy aktywni
+
+    COMPLETED : Cel osiągnięty\n(rides lub earnings)
+
+    FAILED : Przekroczono limit\nporzuceń lub maxTicks
+
+    IDLE     --> RUNNING   : POST /start\n[engine.start(config)]
+    RUNNING  --> COMPLETED : [quota osiągnięta]
+    RUNNING  --> FAILED    : [cancelledTrips >= maxAbandoned\nlub tick >= maxTicks]
+    RUNNING  --> IDLE      : POST /stop → POST /reset
+    COMPLETED --> IDLE     : POST /reset
+    FAILED    --> IDLE     : POST /reset
+    IDLE      --> RUNNING  : POST /resume\n[state.status == RUNNING]
+}
+
+' ═══════════════════════════════════════════════════════════════════
+' 2. KIEROWCA (DriverStatus)
+' ═══════════════════════════════════════════════════════════════════
+
+state "Kierowca (DriverStatus)" as Drv {
+
+    AVAILABLE : Gotowy do przyjęcia zlecenia.\nNie ma przypisanego przejazdu.
+
+    EN_ROUTE_TO_PASSENGER : Jedzie po pasażera.\npath i pathIndex aktywne.
+
+    ON_TRIP : Przewozi pasażera.\npath ustawiona na dropoff.
+
+    OFFLINE : Nieaktywny (rezerwa)
+
+    AVAILABLE --> EN_ROUTE_TO_PASSENGER : matchingService.createTrip()\n[driver.assignToTrip(tripId)]
+
+    EN_ROUTE_TO_PASSENGER --> ON_TRIP   : movementService.advance()\n[dotarł do pasażera]\ntripService → trip.start(tick)\n[driver.startTrip()]
+
+    ON_TRIP --> AVAILABLE               : movementService.advance()\n[dotarł do celu]\ntripService → trip.complete(tick)\n[driver.completeTrip(fare)]
+
+    EN_ROUTE_TO_PASSENGER --> AVAILABLE : tripService.cancelTrip()\n[pasażer porzucił]
+
+    AVAILABLE --> OFFLINE               : (rezerwa / wyłączenie)
+    OFFLINE   --> AVAILABLE             : (reaktywacja)
+}
+
+' ═══════════════════════════════════════════════════════════════════
+' 3. PASAŻER (PassengerStatus)
+' ═══════════════════════════════════════════════════════════════════
+
+state "Pasażer (PassengerStatus)" as Pax {
+
+    WAITING   : Czeka na kierowcę.\nInkrementacja waitingTicks\nco każdy tick.
+
+    MATCHED   : Kierowca przydzielony,\njadący po pasażera.
+
+    IN_TRIP   : W trakcie przejazdu.
+
+    COMPLETED : Dotarł do celu.\n(stan końcowy)
+
+    ABANDONED : Przekroczył maxWaitTicks\nlub anulowano.\n(stan końcowy)
+
+    WAITING   --> MATCHED    : matchingService.createTrip()\n[passenger.matchToTrip(tripId)]
+
+    MATCHED   --> IN_TRIP    : tripService → trip.start(tick)\n[passenger.startRide()]
+
+    IN_TRIP   --> COMPLETED  : tripService → trip.complete(tick)\n[passenger.completeRide()]
+
+    WAITING   --> ABANDONED  : failureDetector.detectAbandoned()\n[waitingTicks >= maxWaitTicks]
+
+    MATCHED   --> ABANDONED  : tripService.cancelTrip()\n[passenger.abandon()]
+}
+
+' ═══════════════════════════════════════════════════════════════════
+' 4. PRZEJAZD (TripStatus)
+' ═══════════════════════════════════════════════════════════════════
+
+state "Przejazd (TripStatus)" as Trp {
+
+    REQUESTED : Zlecenie zarejestrowane,\noczekuje na dopasowanie.
+
+    MATCHED   : Kierowca znaleziony,\njeszcze nie ruszył.
+
+    DRIVER_ARRIVING : Kierowca jedzie\ndo miejsca odbioru.
+
+    IN_PROGRESS : Pasażer w pojeździe,\nkierowca jedzie do celu.
+
+    COMPLETED : Przejazd ukończony,\nopłata naliczona.\n(stan końcowy)
+
+    CANCELLED : Przejazd anulowany\n(porzucenie).\n(stan końcowy)
+
+    REQUESTED       --> MATCHED          : trip.match(tick)
+
+    MATCHED         --> DRIVER_ARRIVING  : trip.driverEnRoute()\n[trip.start() → driver.assignToTrip()]
+
+    DRIVER_ARRIVING --> IN_PROGRESS      : movementService.advance()\n[dotarł do pasażera]\ntrip.start(tick)
+
+    IN_PROGRESS     --> COMPLETED        : movementService.advance()\n[dotarł do celu]\ntrip.complete(tick)\nfare = 5.0 + 2.5 * distanceKm
+
+    DRIVER_ARRIVING --> CANCELLED        : tripService.cancelTrip()\n[pasażer porzucił lub timeout]
+
+    IN_PROGRESS     --> CANCELLED        : tripService.cancelTrip()
+}
+
+@enduml
