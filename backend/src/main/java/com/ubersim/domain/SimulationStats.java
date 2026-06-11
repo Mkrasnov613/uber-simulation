@@ -1,5 +1,6 @@
 package com.ubersim.domain;
 
+import com.ubersim.engine.SimulationConfig;
 import com.ubersim.enums.DriverStatus;
 import com.ubersim.enums.PassengerStatus;
 import com.ubersim.enums.TripStatus;
@@ -64,6 +65,7 @@ public class SimulationStats {
         for(Trip completedTrip: completedTripsList){
             totalTripTime +=  completedTrip.getCompletedAtTick() - completedTrip.getStartedAtTick();
         }
+        // Time in ticks for now
         this.averageTripDurationSeconds = totalTripTime / completedTripsList.size();
 
     }
