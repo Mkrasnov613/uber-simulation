@@ -1,0 +1,178 @@
+@startuml sequence_diagram
+skinparam sequence {
+    ArrowColor #333333
+    LifeLineBorderColor #333333
+    ParticipantBackgroundColor White
+    ParticipantBorderColor #333333
+    ActorBackgroundColor White
+    ActorBorderColor #333333
+    BoxBackgroundColor #F0F0F0
+    NoteBackgroundColor #FFFFC0
+    NoteBorderColor #999999
+    FontName Arial
+}
+skinparam responseMessageBelowArrow true
+
+title Uber Simulation – Diagram Sekwencji\n(Uruchomienie symulacji + jeden pełny cykl tick)
+
+actor "Użytkownik\n(Frontend)" as User
+participant "SimulationController\n/api/simulation" as Ctrl
+participant "SimulationEngine" as Engine
+participant "SpawnService" as Spawn
+participant "MatchingService" as Match
+participant "TripService" as TS
+participant "FailureDetector" as FD
+participant "QuotaService" as QS
+participant "SimulationStats" as St
+participant "SimulationTicker\n@Scheduled" as Ticker
+participant "WebSocketHandler\n/ws/state" as WS
+
+== Uruchomienie symulacji (POST /api/simulation/start) ==
+
+User -> Ctrl : POST /api/simulation/start\n{ SimulationConfig }
+activate Ctrl
+
+Ctrl -> Engine : start(config)
+activate Engine
+
+Engine -> Spawn : spawnDrivers(config)
+activate Spawn
+Spawn --> Engine : List<Driver> (30 kierowców)
+deactivate Spawn
+
+Engine -> Spawn : spawnPassengers(config)
+activate Spawn
+Spawn --> Engine : List<Passenger> (15 pasażerów)
+deactivate Spawn
+
+Engine -> Engine : state.status = RUNNING\nstate.running = true\nstate.tick = 0
+
+Engine --> Ctrl : SimulationState
+deactivate Engine
+
+Ctrl --> User : 200 OK { SimulationState }
+deactivate Ctrl
+
+== Automatyczny cykl – tick N (co 700ms) ==
+
+Ticker -> Engine : tick()
+activate Engine
+note right of Ticker
+  @Scheduled(fixedRate=700)
+  wykonyje się automatycznie
+end note
+
+Engine -> Spawn : spawnOnePassenger(config)
+activate Spawn
+note right of Spawn
+  spawnPerTick = 1
+  nowy pasażer ze statusem WAITING
+end note
+Spawn --> Engine : Passenger (nowy)
+deactivate Spawn
+Engine -> Engine : passengers.add(newPassenger)
+
+Engine -> FD : detectAbandoned(passengers)
+activate FD
+note right of FD
+  każdemu WAITING pasażerowi
+  incrementWait(); jeśli waitingTicks
+  >= maxWaitTicks → abandon()
+end note
+FD --> Engine : List<Passenger> (porzuceni)
+deactivate FD
+
+loop dla każdego porzuconego pasażera
+    Engine -> Engine : cancelRelatedTrip(passenger)\ndriver.setAvailable()
+end
+
+Engine -> Match : matchAll(waitingPassengers, availableDrivers, tick)
+activate Match
+
+loop dla każdej pary pasażer-kierowca
+    Match -> Match : findNearestDriver(passenger, available)
+    Match -> Match : createTrip(driver, passenger, tick)\n  trip.driverEnRoute()\n  driver.assignToTrip(tripId)\n  passenger.matchToTrip(tripId)\n  movementService.routeTo(driver, ...)
+end
+
+Match --> Engine : List<Trip> (nowe trasy)
+deactivate Match
+
+Engine -> Engine : activeTrips.addAll(newTrips)
+
+Engine -> TS : processTick(activeTrips, driversById,\n  passengersById, speed, tick)
+activate TS
+
+loop dla każdej aktywnej trasy
+
+    alt status == DRIVER_ARRIVING
+        TS -> TS : movementService.advance(driver, speed)
+        note right
+          kierowca zbliża się do pasażera
+          po osiągnięciu: trip.start(tick)
+          driver.startTrip()
+          passenger.startRide()
+        end note
+
+    else status == IN_PROGRESS
+        TS -> TS : movementService.advance(driver, speed)
+        note right
+          kierowca jedzie z pasażerem
+          po dotarciu: trip.complete(tick)
+          driver.completeTrip(fare)
+          passenger.completeRide()
+        end note
+    end
+
+end
+
+TS --> Engine : List<Trip> (ukończone)
+deactivate TS
+
+Engine -> St : stats.update(drivers, passengers,\n  activeTrips, completedTrips, abandonedPassengers)
+activate St
+St --> Engine : (aktualizacja statystyk)
+deactivate St
+
+Engine -> QS : evaluate(config, stats, currentTick)
+activate QS
+
+alt quota osiągnięta (completedTrips >= quotaTarget)
+    QS --> Engine : COMPLETED
+    Engine -> Engine : state.status = COMPLETED\nstate.running = false
+else za dużo porzuceń lub przekroczono maxTicks
+    QS --> Engine : FAILED
+    Engine -> Engine : state.status = FAILED\nstate.running = false
+else
+    QS --> Engine : RUNNING
+end
+deactivate QS
+
+Engine -> Engine : cleanup (usuń COMPLETED/ABANDONED pasażerów\nz listy aktywnych)
+
+Engine --> Ticker : (tick zakończony)
+deactivate Engine
+
+Ticker -> WS : broadcast(state)
+activate WS
+note right of WS
+  JSON przez WebSocket
+  do wszystkich połączonych
+  klientów (co 700ms)
+end note
+
+WS -> User : {"status":"RUNNING", "tick":N,\n  "drivers":[...], "passengers":[...],\n  "activeTrips":[...], "stats":{...}}
+deactivate WS
+
+== Zakończenie symulacji ==
+
+User -> Ctrl : POST /api/simulation/stop
+activate Ctrl
+Ctrl -> Engine : stop()
+activate Engine
+Engine -> Engine : state.running = false
+Engine --> Ctrl : SimulationState
+deactivate Engine
+Ctrl --> User : 200 OK { SimulationState }
+deactivate Ctrl
+
+@enduml
