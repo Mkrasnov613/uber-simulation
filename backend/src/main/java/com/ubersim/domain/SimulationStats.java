@@ -60,6 +60,11 @@ public class SimulationStats {
         this.cancelledTrips += canceledPassengers.size();
         this.completedTrips += completedTripsList.size();
         this.totalTrips += newTrips.size();
+        double totalTripTime = 0;
+        for(Trip completedTrip: completedTripsList){
+            totalTripTime +=  completedTrip.getCompletedAtTick() - completedTrip.getStartedAtTick();
+        }
+        this.averageTripDurationSeconds = totalTripTime / completedTripsList.size();
 
     }
 }
