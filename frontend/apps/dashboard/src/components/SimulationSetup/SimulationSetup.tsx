@@ -54,12 +54,26 @@ const Field = ({
   </div>
 );
 
+const STORAGE_KEY = "simulationSetupForm";
+
+const loadSaved = (): ConfigForm => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return { ...DEFAULTS, ...JSON.parse(raw) };
+  } catch {}
+  return DEFAULTS;
+};
+
 export const SimulationSetup = () => {
-  const [form, setForm] = useState<ConfigForm>(DEFAULTS);
+  const [form, setForm] = useState<ConfigForm>(loadSaved);
   const [loading, setLoading] = useState(false);
 
   const set = <K extends keyof ConfigForm>(key: K, value: ConfigForm[K]) =>
-    setForm((prev) => ({ ...prev, [key]: value }));
+    setForm((prev) => {
+      const next = { ...prev, [key]: value };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
 
   const numInput = (key: keyof ConfigForm, step = 1, min = 0) => (
     <StyledInput
@@ -140,7 +154,7 @@ export const SimulationSetup = () => {
       </SetupBody>
 
       <SetupFooter>
-        <ResetButton onClick={() => setForm(DEFAULTS)}>
+        <ResetButton onClick={() => { localStorage.removeItem(STORAGE_KEY); setForm(DEFAULTS); }}>
           Reset defaults
         </ResetButton>
         <StartButton onClick={handleStart} disabled={loading} $loading={loading}>
