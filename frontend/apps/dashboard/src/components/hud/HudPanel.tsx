@@ -1,7 +1,7 @@
 import { COLORS, FONT } from "../../theme";
 import { Driver, SimulationStats } from "../../types";
-import { StatsGrid } from "./StatsGrid";
-import { DriverList } from "./DriverList";
+import { StatsGrid } from "./StatsGrid/StatsGrid";
+import { DriverList } from "./DriverList/DriverList";
 
 interface Props {
   stats: SimulationStats | null;
@@ -28,7 +28,7 @@ export const HudPanel = ({ stats, driverList, activeTripsCount, visible }: Props
         background: COLORS.panel,
         borderLeft: `1px solid ${COLORS.panelBorder}`,
         fontFamily: FONT,
-        zIndex: 20,
+        zIndex: 100,
         overflow: "hidden",
         transform: visible ? "translateX(0)" : `translateX(${HUD_WIDTH}px)`,
         transition: "transform 0.25s ease",

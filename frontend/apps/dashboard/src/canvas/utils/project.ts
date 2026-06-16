@@ -5,14 +5,19 @@ export function project(
   bounds: MapBounds,
   width: number,
   height: number,
+  padding = 50,
 ): CanvasPoint {
   const x =
+    padding +
     ((coordinates.longitude - bounds.minLng) /
       (bounds.maxLng - bounds.minLng)) *
-    width;
+      (width - 2 * padding);
 
   const y =
-    ((bounds.maxLat - coordinates.latitude) / (bounds.maxLat - bounds.minLat)) *
-    height;
+    padding +
+    ((bounds.maxLat - coordinates.latitude) /
+      (bounds.maxLat - bounds.minLat)) *
+      (height - 2 * padding);
+
   return { x, y };
 }

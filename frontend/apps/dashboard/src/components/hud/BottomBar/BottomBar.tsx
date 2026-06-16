@@ -74,12 +74,6 @@ export const BottomBar = ({
           </>
         )}
 
-        {([1, 2, 4] as const).map((s) => (
-          <CtrlButton key={s} onClick={() => setSpeed(s)} $active={speed === s}>
-            {s}×
-          </CtrlButton>
-        ))}
-
         <Divider />
 
         <CtrlButton onClick={() => onSmoothChange(true)} $active={smooth}>
@@ -107,14 +101,6 @@ export const BottomBar = ({
         </IconButton>
       </ControlsRow>
 
-      <StatusBar>
-        <StatusBarText>
-          jvm://uber-sim/dispatcher · ws-frame {String(tick).padStart(6, "0")}
-        </StatusBarText>
-        <StatusBarText>
-          {simStatus} · {smooth ? "smooth" : "tick"}@{speed}× · tick {tick}/{maxTicks}
-        </StatusBarText>
-      </StatusBar>
     </BarRoot>
   );
 };
