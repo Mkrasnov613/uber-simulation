@@ -6,8 +6,7 @@ import { TripEntity } from "../entities/TripEntity";
 import { RoadMap } from "../../types/map";
 import { drawRoads } from "./helpers";
 import { project } from "../utils/project";
-
-const TICK_MS = 700;
+import { TICK_MS } from "../constants";
 
 interface Props {
   bounds: MapBounds;
@@ -75,9 +74,13 @@ export const MapCanvas = ({
 
         const driverPos = driver.update(alpha);
 
-        // polyline: driver position → each remaining waypoint along his path
+        // polyline: driver position → currPos (turn anchor) → each remaining waypoint
+        // currPos bridges the gap between the interpolated visual position and path[pathIndex]:
+        // without it, the line cuts diagonally across roads when pathIndex advances past a turn
+        // the driver hasn't visually reached yet.
         const pts = [
           project(driverPos, bounds, size.current.width, size.current.height),
+          project(driver.currPos, bounds, size.current.width, size.current.height),
         ];
         for (let i = driver.pathIndex; i < driver.path.length; i++) {
           const node = nodeById.get(driver.path[i]);
