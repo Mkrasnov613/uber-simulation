@@ -1,10 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { DriverEntity } from "../canvas/entities/DriverEntity";
-import { Driver, SimulationConfig, SimulationState, SimulationStats } from "../types";
+import {
+  Driver,
+  SimulationConfig,
+  SimulationState,
+  SimulationStats,
+} from "../types";
 import { PassengerEntity } from "../canvas/entities/PassengerEntity";
 import { TripEntity } from "../canvas/entities/TripEntity";
 import { reconcileMap } from "../canvas/utils/reconcileMap";
 import { SimulationStatus } from "../types/statuses";
+import { TICK_MS } from "../canvas/constants";
 
 export type WsStatus = "connecting" | "open" | "closed";
 
@@ -16,7 +22,9 @@ export const useSimulation = ({ url }: { url: string }) => {
   const tickStart = useRef(performance.now());
 
   const [status, setStatus] = useState<WsStatus>("connecting");
-  const [simStatus, setSimStatus] = useState<SimulationStatus>(SimulationStatus.IDLE);
+  const [simStatus, setSimStatus] = useState<SimulationStatus>(
+    SimulationStatus.IDLE,
+  );
   const [running, setRunning] = useState(false);
   const [tick, setTick] = useState<number>(0);
   const [config, setConfig] = useState<SimulationConfig | null>(null);
@@ -38,14 +46,34 @@ export const useSimulation = ({ url }: { url: string }) => {
       } catch {
         return;
       }
-      reconcileMap(drivers.current, state.drivers, (d) => new DriverEntity(d));
+
+      const alpha = Math.min(
+        1,
+        (performance.now() - tickStart.current) / TICK_MS,
+      );
+
+      const seenDrivers = new Set<string>();
+
+      for (const dto of state.drivers) {
+        seenDrivers.add(dto.id);
+        const existing = drivers.current.get(dto.id);
+        if (existing) existing.applyDto(dto, alpha);
+        else drivers.current.set(dto.id, new DriverEntity(dto));
+      }
+
+      for (const id of drivers.current.keys())
+        if (!seenDrivers.has(id)) drivers.current.delete(id);
+
       reconcileMap(
         passengers.current,
         state.passengers,
         (p) => new PassengerEntity(p),
       );
+
       reconcileMap(trips.current, state.activeTrips, (t) => new TripEntity(t));
+
       tickStart.current = performance.now();
+
       setSimStatus(state.status ?? SimulationStatus.IDLE);
       setRunning(state.running);
       setTick(state.tick);

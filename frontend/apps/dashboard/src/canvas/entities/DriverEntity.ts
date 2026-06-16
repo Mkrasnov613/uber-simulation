@@ -23,8 +23,8 @@ export class DriverEntity {
     this.pathIndex = driver.pathIndex;
   }
 
-  applyDto(driver: Driver) {
-    this.prevPos = this.currPos; // last target becomes the new starting point
+  applyDto(driver: Driver, alpha = 1) {
+    this.prevPos = this.update(alpha); // snapshot actual on-screen position, not the old target
     this.currPos = { ...driver.location };
     this.status = driver.status;
     this.path = driver.path ?? [];
