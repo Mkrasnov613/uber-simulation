@@ -8,7 +8,7 @@ export const Backdrop = styled.div`
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(4px);
-  z-index: 50;
+  z-index: 10;
   font-family: ${FONT};
 `;
 

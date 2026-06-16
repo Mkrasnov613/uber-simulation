@@ -41,7 +41,6 @@ public class SimulationStats {
         this.activeDrivers = 0;
         this.availableDrivers = 0;
 
-
         for (Passenger passenger : passengers) {
             if (passenger.getStatus() == PassengerStatus.WAITING) {
                 waitingPassengers++;
@@ -56,10 +55,15 @@ public class SimulationStats {
                 availableDrivers++;
             }
         }
-        //adds total count of trips from returning functions
+
         this.cancelledTrips += canceledPassengers.size();
         this.completedTrips += completedTripsList.size();
         this.totalTrips += newTrips.size();
 
+        for (Trip trip : completedTripsList) {
+            this.totalEarnings += trip.getFare();
+        }
+
+        this.averageFare = this.completedTrips === 0 ? 0 : this.totalEarnings / this.completedTrips;
     }
 }

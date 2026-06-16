@@ -10,6 +10,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class Coordinates {
     private double latitude;
+    
     private double longitude;
 
     // 1. Takes two points on Earth — e.g. (52.23, 21.01) and (52.25, 21.05)
