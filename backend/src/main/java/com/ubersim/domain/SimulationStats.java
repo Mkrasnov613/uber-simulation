@@ -69,8 +69,8 @@ public class SimulationStats {
         }
 
         //average wait time counts only complete trips
-        if(this.completedTrips ==0){
-            this.averageWaitTimeSeconds =0;
+        if (this.completedTrips == 0){
+            this.averageWaitTimeSeconds = 0;
             this.averageTripDurationSeconds = 0;
         } else{
             this.averageWaitTimeSeconds = this.totalWaitTime/this.completedTrips;
