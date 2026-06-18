@@ -21,6 +21,8 @@ public class SimulationStats {
     private double averageTripDurationSeconds;
     private double averageFare;
     private double totalEarnings;
+    private double totalWaitTime;
+    private double totalTripTime;
 
 
     public double getCancellationRate() {
@@ -62,8 +64,19 @@ public class SimulationStats {
 
         for (Trip trip : completedTripsList) {
             this.totalEarnings += trip.getFare();
+            this.totalWaitTime += trip.getStartedAtTick()-trip.getMatchedAtTick();
+            this.totalTripTime += trip.getTripDuration();
         }
 
-        this.averageFare = this.completedTrips === 0 ? 0 : this.totalEarnings / this.completedTrips;
+        //average wait time counts only complete trips
+        if(this.completedTrips ==0){
+            this.averageWaitTimeSeconds =0;
+            this.averageTripDurationSeconds = 0;
+        } else{
+            this.averageWaitTimeSeconds = this.totalWaitTime/this.completedTrips;
+            this.averageTripDurationSeconds = this.totalTripTime / this.completedTrips;
+        }
+
+        this.averageFare = this.completedTrips == 0 ? 0 : this.totalEarnings / this.completedTrips;
     }
 }
