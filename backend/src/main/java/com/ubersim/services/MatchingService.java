@@ -3,13 +3,13 @@ package com.ubersim.services;
 import com.ubersim.domain.Driver;
 import com.ubersim.domain.Passenger;
 import com.ubersim.domain.Trip;
-import com.ubersim.enums.DriverStatus;
 import com.ubersim.enums.PassengerStatus;
+import com.ubersim.enums.DriverStatus;
 import com.ubersim.enums.TripStatus;
+import com.ubersim.interfaces.MatchingStrategy;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,18 +18,15 @@ import java.util.UUID;
 public class MatchingService {
 
     private final MovementService movementService;
+    private final MatchingStrategy matchingStrategy;
 
-    public MatchingService(MovementService movementService) {
+    public MatchingService(MovementService movementService, MatchingStrategy matchingStrategy) {
         this.movementService = movementService;
+        this.matchingStrategy = matchingStrategy;
     }
 
-    public Optional<Driver> findNearestDriver(Passenger passenger, List<Driver> availableDrivers) {
-        if (availableDrivers == null || availableDrivers.isEmpty()) return Optional.empty();
-
-        return availableDrivers.stream()
-                .filter(driver -> driver.getStatus() == DriverStatus.AVAILABLE)
-                .min(Comparator.comparingDouble(driver ->
-                        driver.getLocation().distanceTo(passenger.getPickupLocation())));
+    public Optional<Driver> findDriver(Passenger passenger, List<Driver> availableDrivers) {
+        return matchingStrategy.findDriver(passenger, availableDrivers);
     }
 
     public Trip createTrip(Driver driver, Passenger passenger, int currentTick) {
@@ -73,13 +70,13 @@ public class MatchingService {
         for (Passenger passenger : waitingPassengers) {
             if (remainingDrivers.isEmpty()) break;
 
-            Optional<Driver> match = findNearestDriver(passenger, remainingDrivers);
+            Optional<Driver> match = findDriver(passenger, remainingDrivers);
 
             if (match.isPresent()) {
                 Driver driver = match.get();
                 Trip trip = createTrip(driver, passenger, currentTick);
                 newTrips.add(trip);
-                remainingDrivers.remove(driver); // щоб один водій не взяв двох пасажирів
+                remainingDrivers.remove(driver);
             }
         }
 
