@@ -20,6 +20,7 @@ participant "SimulationController\n/api/simulation" as Ctrl
 participant "SimulationEngine" as Engine
 participant "SpawnService" as Spawn
 participant "MatchingService" as Match
+participant "MatchingStrategy\n(NearestDriver)" as Strat
 participant "TripService" as TS
 participant "FailureDetector" as FD
 participant "QuotaService" as QS
@@ -59,7 +60,7 @@ Ticker -> Engine : tick()
 activate Engine
 note right of Ticker
   @Scheduled(fixedRate=700)
-  wykonyje się automatycznie
+  wykonuje się automatycznie
 end note
 
 Engine -> Spawn : spawnOnePassenger(config)
@@ -89,8 +90,13 @@ end
 Engine -> Match : matchAll(waitingPassengers, availableDrivers, tick)
 activate Match
 
-loop dla każdej pary pasażer-kierowca
-    Match -> Match : findNearestDriver(passenger, available)
+loop dla każdej pary pasażer–kierowca
+    Match -> Strat : findDriver(passenger, availableDrivers)
+    note right of Strat
+      NearestDriverStrategy:
+      min(distanceTo(passenger.pickup))
+    end note
+    Strat --> Match : Optional<Driver>
     Match -> Match : createTrip(driver, passenger, tick)\n  trip.driverEnRoute()\n  driver.assignToTrip(tripId)\n  passenger.matchToTrip(tripId)\n  movementService.routeTo(driver, ...)
 end
 
@@ -111,6 +117,7 @@ loop dla każdej aktywnej trasy
           po osiągnięciu: trip.start(tick)
           driver.startTrip()
           passenger.startRide()
+          movementService.routeTo(pickup→dropoff)
         end note
 
     else status == IN_PROGRESS
@@ -118,6 +125,7 @@ loop dla każdej aktywnej trasy
         note right
           kierowca jedzie z pasażerem
           po dotarciu: trip.complete(tick)
+          fare = 5.0 + 2.5 * distanceKm
           driver.completeTrip(fare)
           passenger.completeRide()
         end note
@@ -128,10 +136,12 @@ end
 TS --> Engine : List<Trip> (ukończone)
 deactivate TS
 
-Engine -> St : stats.update(drivers, passengers,\n  activeTrips, completedTrips, abandonedPassengers)
+Engine -> St : stats.update(drivers, passengers,\n  newTrips, completedTrips, abandonedPassengers)
 activate St
 St --> Engine : (aktualizacja statystyk)
 deactivate St
+
+Engine -> Engine : history.add(new TickSnapshot(tick, ...))
 
 Engine -> QS : evaluate(config, stats, currentTick)
 activate QS
@@ -147,12 +157,12 @@ else
 end
 deactivate QS
 
-Engine -> Engine : cleanup (usuń COMPLETED/ABANDONED pasażerów\nz listy aktywnych)
+Engine -> Engine : cleanup (usuń COMPLETED/ABANDONED\npasażerów z listy aktywnych)
 
 Engine --> Ticker : (tick zakończony)
 deactivate Engine
 
-Ticker -> WS : broadcast(state)
+Ticker -> WS : broadcast(json)
 activate WS
 note right of WS
   JSON przez WebSocket
@@ -162,6 +172,15 @@ end note
 
 WS -> User : {"status":"RUNNING", "tick":N,\n  "drivers":[...], "passengers":[...],\n  "activeTrips":[...], "stats":{...}}
 deactivate WS
+
+== Eksport danych po zakończeniu ==
+
+User -> Ctrl : GET /api/simulation/export/csv
+activate Ctrl
+Ctrl -> Engine : getHistory()
+Engine --> Ctrl : List<TickSnapshot>
+Ctrl --> User : simulation.csv\n(tick, waiting, trips, earnings, avgWait...)
+deactivate Ctrl
 
 == Zakończenie symulacji ==
 

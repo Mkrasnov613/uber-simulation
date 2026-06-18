@@ -33,15 +33,29 @@ export class PassengerEntity {
       this.status !== PassengerStatus.MATCHED
     )
       return;
-    const position = project(this.pickup, bounds, size.width, size.height);
+    const { x, y } = project(this.pickup, bounds, size.width, size.height);
+
     ctx.save();
+    ctx.translate(x, y);
     ctx.fillStyle = PASSENGER_COLOR;
+    ctx.strokeStyle = "rgba(255,255,255,0.55)";
+    ctx.lineWidth = 1.5;
+
+    // body: arch for shoulders + straight sides + flat bottom
     ctx.beginPath();
-    ctx.arc(position.x, position.y, 6, 0, Math.PI * 2);
+    ctx.arc(0, 0, 5.5, Math.PI, 0, true);
+    ctx.lineTo(5.5, 6);
+    ctx.lineTo(-5.5, 6);
+    ctx.closePath();
     ctx.fill();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = "rgba(255,255,255,0.6)";
     ctx.stroke();
+
+    // head
+    ctx.beginPath();
+    ctx.arc(0, -5, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
     ctx.restore();
   }
 }

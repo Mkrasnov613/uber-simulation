@@ -49,13 +49,18 @@ const App = () => {
         />
       )}
 
-      <TopBar wsStatus={status} />
+      <TopBar
+        wsStatus={status}
+        hudVisible={hudVisible && !isFinished}
+        onHudToggle={() => setHudVisible((v) => !v)}
+      />
 
       <HudPanel
         stats={stats}
         driverList={driverList}
         activeTripsCount={activeTripsCount}
         visible={hudVisible && !isFinished}
+        config={config}
       />
 
       <BottomBar
@@ -66,7 +71,6 @@ const App = () => {
         smooth={smooth}
         onSmoothChange={setSmooth}
         hudVisible={hudVisible && !isFinished}
-        onHudToggle={() => setHudVisible((v) => !v)}
       />
 
       {simStatus === SimulationStatus.IDLE && <SimulationSetup />}

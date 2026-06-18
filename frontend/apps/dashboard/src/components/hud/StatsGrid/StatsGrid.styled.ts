@@ -56,14 +56,59 @@ export const CompletedRow = styled.div`
   border-bottom: 1px solid ${COLORS.panelDivider};
 `;
 
-export const CompletedLabel = styled.span`
+export const CompletedLabel = styled.span<{ $active?: boolean }>`
+  color: ${p => p.$active ? COLORS.textPrimary : COLORS.textMuted};
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  font-weight: ${p => p.$active ? 600 : 400};
+`;
+
+export const CompletedValue = styled.span<{ $active?: boolean }>`
+  color: ${p => p.$active ? COLORS.textPrimary : COLORS.textSecondary};
+  font-size: 12px;
+  font-weight: ${p => p.$active ? 700 : 600};
+`;
+
+export const RevenueRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid ${COLORS.panelDivider};
+`;
+
+export const RevenueLabel = styled.span<{ $active?: boolean }>`
+  color: ${p => p.$active ? COLORS.textPrimary : COLORS.textMuted};
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  font-weight: ${p => p.$active ? 600 : 400};
+`;
+
+export const RevenueValue = styled.span<{ $active?: boolean }>`
+  color: ${COLORS.green};
+  font-size: ${p => p.$active ? '16px' : '14px'};
+  font-weight: 700;
+  letter-spacing: -0.01em;
+`;
+
+export const QuotaRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  border-bottom: 1px solid ${COLORS.panelDivider};
+  background: rgba(56, 189, 248, 0.03);
+`;
+
+export const QuotaLabel = styled.span`
   color: ${COLORS.textMuted};
   font-size: 10px;
   letter-spacing: 0.04em;
 `;
 
-export const CompletedValue = styled.span`
-  color: ${COLORS.textSecondary};
+export const QuotaCount = styled.span<{ $done: boolean }>`
+  color: ${p => p.$done ? COLORS.green : COLORS.textSecondary};
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 `;

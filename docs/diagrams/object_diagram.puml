@@ -36,6 +36,7 @@ object "stats : SimulationStats" as stats {
     availableDrivers = 14
     waitingPassengers = 3
     averageWaitTimeSeconds = 4.7
+    averageTripDurationSeconds = 11.2
     averageFare = 9.25
     totalEarnings = 111.0
 }
@@ -138,6 +139,27 @@ object "trip2 : Trip" as t2 {
     completedAtTick = 0
 }
 
+' ─── Matching Strategy (Spring singleton) ─────────────────────────
+object "matchingService : MatchingService" as ms {
+}
+
+object "strategy : NearestDriverStrategy" as strat {
+    (wybiera kierowcę o najmniejszej\nodległości od pasażera)
+}
+
+' ─── TickSnapshot (ostatni zapis w history) ───────────────────────
+object "snap42 : TickSnapshot" as snap {
+    tick = 42
+    waitingPassengers = 3
+    activeTrips = 6
+    completedTrips = 12
+    abandonedPassengers = 2
+    availableDrivers = 14
+    busyDrivers = 14
+    totalEarnings = 111.0
+    avgWaitTimeSec = 4.7
+}
+
 ' ─── Coordinates ──────────────────────────────────────────────────
 object "loc_d1 : Coordinates" as loc1 {
     latitude = 52.2312
@@ -161,8 +183,8 @@ object "dropoff_p1 : Coordinates" as drp1 {
 
 ' ─── Map / Graph ──────────────────────────────────────────────────
 object "roadGraph : RoadGraph" as rg {
-    nodeCount = 100
-    edgeCount = 180
+    nodeCount = 49
+    edgeCount = 84
 }
 
 object "node_N12 : Node" as n12 {
@@ -200,6 +222,8 @@ t1 --> d1     : references driverId
 t1 --> p1     : references passengerId
 t2 --> d3     : references driverId
 t2 --> p3     : references passengerId
+
+ms o-- strat  : matchingStrategy
 
 rg o-- n12    : nodes
 rg o-- n07    : nodes

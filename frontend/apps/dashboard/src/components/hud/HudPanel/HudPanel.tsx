@@ -1,4 +1,4 @@
-import { Driver, SimulationStats } from "../../../types";
+import { Driver, SimulationConfig, SimulationStats } from "../../../types";
 import { DriverList } from "../DriverList/DriverList";
 import { StatsGrid } from "../StatsGrid/StatsGrid";
 import {
@@ -22,18 +22,17 @@ interface Props {
   driverList: Driver[];
   activeTripsCount: number;
   visible: boolean;
+  config: SimulationConfig | null;
 }
 
-export const HudPanel = ({ stats, driverList, activeTripsCount, visible }: Props) => {
+export const HudPanel = ({ stats, driverList, activeTripsCount, visible, config }: Props) => {
   if (!stats) return null;
 
   return (
     <PanelContainer $visible={visible}>
       <PanelHeader>
-        <LiveLabel>LIVE · 5S ROLLING</LiveLabel>
         <PanelTitleRow>
-          <PanelTitle>Fleet · City Operations</PanelTitle>
-          <OkBadge>● OK</OkBadge>
+          <PanelTitle>Uber simulation</PanelTitle>
         </PanelTitleRow>
       </PanelHeader>
 
@@ -42,6 +41,7 @@ export const HudPanel = ({ stats, driverList, activeTripsCount, visible }: Props
           stats={stats}
           driverList={driverList}
           activeTripsCount={activeTripsCount}
+          config={config}
         />
       </StatsWrapper>
 
@@ -50,7 +50,7 @@ export const HudPanel = ({ stats, driverList, activeTripsCount, visible }: Props
         <DriverListTitle>Drivers</DriverListTitle>
       </DriverListHeader>
 
-      <DriverList drivers={driverList} />
+      <DriverList drivers={driverList} config={config} />
     </PanelContainer>
   );
 };

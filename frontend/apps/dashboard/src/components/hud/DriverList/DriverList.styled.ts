@@ -50,6 +50,11 @@ export const DriverMeta = styled.div`
   margin-top: 1px;
 `;
 
+export const QuotaProgress = styled.span<{ $met: boolean }>`
+  color: ${p => p.$met ? COLORS.green : COLORS.textMuted};
+  font-weight: ${p => p.$met ? 700 : 400};
+`;
+
 export const StatusBadge = styled.div<{ $color: string; $bg: string }>`
   padding: 2px 6px;
   border-radius: 3px;
