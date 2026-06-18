@@ -24,6 +24,10 @@ public class SimulationEngine {
     @Getter
     private SimulationState state;
 
+    @Getter
+    private List<TickSnapshot> history = new ArrayList<>();
+
+
     public SimulationEngine(MatchingService matchingService, TripService tripService, QuotaService quotaService, SpawnService spawnService, FailureDetector failureDetector, SimulationConfig simulationConfig) {
         this.matchingService = matchingService;
         this.tripService = tripService;
@@ -36,6 +40,7 @@ public class SimulationEngine {
 
     public void start(SimulationConfig config) {
         SimulationConfig effectiveConfig = (config != null) ? config : simulationConfig;
+        this.history = new ArrayList<>();
 
         List<Driver> drivers = spawnService.spawnDrivers(effectiveConfig);
         List<Passenger> passengers = spawnService.spawnPassengers(effectiveConfig);
@@ -80,6 +85,10 @@ public class SimulationEngine {
                 }
             }
 
+            // capture waiting count before matchAll() changes statuses to MATCHED
+            int waitingBeforeMatch = (int) state.getPassengers().stream()
+                    .filter(Passenger::isWaiting).count();
+
             // 3. matching + movement
             List<Trip> newTrips = matchingService.matchAll(state.getPassengers(), state.getDrivers(), state.getTick());
             state.getActiveTrips().addAll(newTrips);
@@ -90,6 +99,20 @@ public class SimulationEngine {
 
             // 4. stats + outcome
             state.getStats().update(state.getDrivers(), state.getPassengers(), newTrips, completedTrips, abandonedPassengers);
+            state.getStats().setWaitingPassengers(waitingBeforeMatch);
+
+            SimulationStats stats = state.getStats();
+            history.add(new TickSnapshot(
+                    state.getTick(),
+                    stats.getWaitingPassengers(),
+                    state.getActiveTrips().size(),
+                    stats.getCompletedTrips(),
+                    stats.getCancelledTrips(),
+                    stats.getAvailableDrivers(),
+                    stats.getActiveDrivers() - stats.getAvailableDrivers(),
+                    stats.getTotalEarnings(),
+                    stats.getAverageWaitTimeSeconds()
+            ));
 
             SimulationStatus status = quotaService.evaluate(state.getConfig(), state.getStats(), state.getTick());
             state.setStatus(status);
@@ -114,5 +137,6 @@ public class SimulationEngine {
 
     public void reset() {
         state = SimulationState.stub();
+        history = new ArrayList<>();
     }
 }
