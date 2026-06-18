@@ -7,7 +7,6 @@ import {
   ControlsRow,
   CtrlButton,
   Divider,
-  IconButton,
   LegendDot,
   LegendItem,
   LegendLabel,
@@ -36,7 +35,6 @@ interface Props {
   smooth: boolean;
   onSmoothChange: (v: boolean) => void;
   hudVisible: boolean;
-  onHudToggle: () => void;
 }
 
 export const BottomBar = ({
@@ -47,7 +45,6 @@ export const BottomBar = ({
   smooth,
   onSmoothChange,
   hudVisible,
-  onHudToggle,
 }: Props) => {
   const [speed, setSpeed] = useState<1 | 2 | 4>(1);
 
@@ -95,10 +92,6 @@ export const BottomBar = ({
             </LegendItem>
           ))}
         </LegendWrapper>
-
-        <IconButton onClick={onHudToggle} $active={hudVisible} title={hudVisible ? "Hide HUD" : "Show HUD"}>
-          {hudVisible ? "◨" : "◧"}
-        </IconButton>
       </ControlsRow>
 
     </BarRoot>

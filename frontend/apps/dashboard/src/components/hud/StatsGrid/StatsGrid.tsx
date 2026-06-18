@@ -1,4 +1,5 @@
-import { Driver, DriverStatus, SimulationStats } from "../../../types";
+import { Driver, DriverStatus, SimulationConfig, SimulationStats } from "../../../types";
+import { QuotaMode } from "../../../types/statuses";
 import {
   CellLabel,
   CellPadding,
@@ -11,12 +12,16 @@ import {
   GridCell,
   GridRoot,
   GridRow,
+  RevenueLabel,
+  RevenueRow,
+  RevenueValue,
 } from "./StatsGrid.styled";
 
 interface Props {
   stats: SimulationStats;
   driverList: Driver[];
   activeTripsCount: number;
+  config: SimulationConfig | null;
 }
 
 const Cell = ({
@@ -37,10 +42,17 @@ const Cell = ({
   </CellPadding>
 );
 
-export const StatsGrid = ({ stats, driverList, activeTripsCount }: Props) => {
+const fmtMoney = (n: number) =>
+  "$" + n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+export const StatsGrid = ({ stats, driverList, activeTripsCount, config }: Props) => {
   const onTrip = driverList.filter((d) => d.status === DriverStatus.ON_TRIP).length;
   const enRoute = driverList.filter((d) => d.status === DriverStatus.EN_ROUTE_TO_PASSENGER).length;
   const online = driverList.filter((d) => d.status !== DriverStatus.OFFLINE).length;
+
+  const quotaMode = config?.quotaMode ?? null;
+  const earningsQuota = quotaMode === QuotaMode.EARNINGS;
+  const ridesQuota = quotaMode === QuotaMode.RIDES;
 
   return (
     <GridRoot>
@@ -68,9 +80,14 @@ export const StatsGrid = ({ stats, driverList, activeTripsCount }: Props) => {
         </GridCell>
       </GridRow>
 
+      <RevenueRow>
+        <RevenueLabel $active={earningsQuota}>total_revenue</RevenueLabel>
+        <RevenueValue $active={earningsQuota}>{fmtMoney(stats.totalEarnings)}</RevenueValue>
+      </RevenueRow>
+
       <CompletedRow>
-        <CompletedLabel>completed_trips</CompletedLabel>
-        <CompletedValue>{String(stats.completedTrips).padStart(4, "0")}</CompletedValue>
+        <CompletedLabel $active={ridesQuota}>completed_trips</CompletedLabel>
+        <CompletedValue $active={ridesQuota}>{String(stats.completedTrips).padStart(4, "0")}</CompletedValue>
       </CompletedRow>
     </GridRoot>
   );

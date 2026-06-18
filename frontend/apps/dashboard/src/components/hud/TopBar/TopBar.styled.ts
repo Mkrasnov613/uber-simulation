@@ -7,19 +7,11 @@ export const TopBarRoot = styled.div`
   height: 56px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 0 16px;
   font-family: ${FONT};
   z-index: 100;
   pointer-events: none;
-`;
-
-export const BarTitle = styled.div`
-  color: ${COLORS.textPrimary};
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  line-height: 1;
 `;
 
 export const RightGroup = styled.div`
@@ -52,4 +44,29 @@ export const StatusText = styled.span<{ $live: boolean }>`
 export const TimeText = styled.span`
   color: ${COLORS.textSecondary};
   font-size: 12px;
+`;
+
+export const HudToggleBtn = styled.button<{ $active: boolean }>`
+  pointer-events: auto;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 4px;
+  background: ${p => p.$active ? 'rgba(56, 189, 248, 0.08)' : 'rgba(255, 255, 255, 0.04)'};
+  border: 1px solid ${p => p.$active ? 'rgba(56, 189, 248, 0.25)' : 'rgba(255, 255, 255, 0.08)'};
+  color: ${p => p.$active ? COLORS.textPrimary : COLORS.textMuted};
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+  font-family: ${FONT};
+  line-height: 1;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: rgba(56, 189, 248, 0.12);
+    border-color: rgba(56, 189, 248, 0.35);
+  }
 `;

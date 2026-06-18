@@ -1,4 +1,5 @@
-import { Driver, DriverStatus } from "../../../types";
+import { Driver, DriverStatus, SimulationConfig } from "../../../types";
+import { QuotaMode } from "../../../types/statuses";
 import {
   DriverInfo,
   DriverMeta,
@@ -6,11 +7,13 @@ import {
   DriverRow,
   IndexBadge,
   ListRoot,
+  QuotaProgress,
   StatusBadge,
 } from "./DriverList.styled";
 
 interface Props {
   drivers: Driver[];
+  config: SimulationConfig | null;
 }
 
 const BADGE: Record<DriverStatus, { label: string; color: string; bg: string }> = {
@@ -43,8 +46,10 @@ const ORDER: Record<DriverStatus, number> = {
   [DriverStatus.OFFLINE]: 3,
 };
 
-export const DriverList = ({ drivers }: Props) => {
+export const DriverList = ({ drivers, config }: Props) => {
   const sorted = [...drivers].sort((a, b) => ORDER[a.status] - ORDER[b.status]);
+  const quotaMode = config?.quotaMode ?? null;
+  const quotaTarget = config?.quotaTarget ?? 0;
 
   return (
     <ListRoot>
@@ -53,13 +58,24 @@ export const DriverList = ({ drivers }: Props) => {
         const parts = driver.name.split(" ");
         const name = parts[0] + (parts[1] ? " " + parts[1][0] + "." : "");
 
+        // RIDES quota is per-driver; EARNINGS quota is fleet-wide — no per-driver target shown
+        const ridesMet = quotaMode === QuotaMode.RIDES && driver.totalTripsCompleted >= quotaTarget;
+
         return (
           <DriverRow key={driver.id}>
             <IndexBadge>{String(i).padStart(2, "0")}</IndexBadge>
             <DriverInfo>
               <DriverName>{name}</DriverName>
               <DriverMeta>
-                ★ {driver.rating.toFixed(2)} · {driver.totalTripsCompleted} trips
+                ★ {driver.rating.toFixed(2)} ·{" "}
+                {quotaMode === QuotaMode.RIDES ? (
+                  <QuotaProgress $met={ridesMet}>
+                    {driver.totalTripsCompleted}/{quotaTarget} trips{ridesMet ? " ✓" : ""}
+                  </QuotaProgress>
+                ) : (
+                  <>{driver.totalTripsCompleted} trips</>
+                )}
+                {" · "}${driver.totalEarnings.toFixed(0)}
               </DriverMeta>
             </DriverInfo>
             <StatusBadge $color={badge.color} $bg={badge.bg}>

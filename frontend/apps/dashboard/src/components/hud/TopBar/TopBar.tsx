@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { WsStatus } from "../../../hooks/useSimulation";
 import {
-  BarTitle,
+  HudToggleBtn,
   RightGroup,
   StatusDot,
   StatusGroup,
@@ -12,9 +12,11 @@ import {
 
 interface Props {
   wsStatus: WsStatus;
+  hudVisible?: boolean;
+  onHudToggle?: () => void;
 }
 
-export const TopBar = ({ wsStatus }: Props) => {
+export const TopBar = ({ wsStatus, hudVisible, onHudToggle }: Props) => {
   const [time, setTime] = useState(() => new Date());
 
   useEffect(() => {
@@ -32,13 +34,21 @@ export const TopBar = ({ wsStatus }: Props) => {
 
   return (
     <TopBarRoot>
-      <BarTitle>Uber-simulation · Dispatcher</BarTitle>
       <RightGroup>
         <StatusGroup>
           <StatusDot $live={isLive} />
           <StatusText $live={isLive}>{isLive ? "LIVE" : "OFFLINE"}</StatusText>
         </StatusGroup>
         <TimeText>{timeStr}</TimeText>
+        {onHudToggle && (
+          <HudToggleBtn
+            $active={!!hudVisible}
+            onClick={onHudToggle}
+            title={hudVisible ? "Hide HUD" : "Show HUD"}
+          >
+            {hudVisible ? "◨" : "◧"}
+          </HudToggleBtn>
+        )}
       </RightGroup>
     </TopBarRoot>
   );

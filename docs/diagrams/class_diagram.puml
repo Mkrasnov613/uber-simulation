@@ -21,6 +21,10 @@ interface "Stateful<T extends Enum<T>>" as Stateful {
     + isActive(): boolean
 }
 
+interface MatchingStrategy {
+    + findDriver(passenger: Passenger, drivers: List<Driver>): Optional<Driver>
+}
+
 ' ─── Abstract Base ────────────────────────────────────────────────
 abstract class SimulationEntity {
     # id: String
@@ -66,7 +70,7 @@ class Coordinates {
     + longitude: double
     + distanceTo(other: Coordinates): double
     + stepToward(target: Coordinates, stepKm: double): Coordinates
-    + {static} randomCoordinates(): Coordinates
+    + randomCoordinates(): void
 }
 
 ' ─── Domain Entities ──────────────────────────────────────────────
@@ -132,6 +136,18 @@ class Trip {
     + calculateFare(): double
 }
 
+class TickSnapshot <<record>> {
+    + tick: int
+    + waitingPassengers: int
+    + activeTrips: int
+    + completedTrips: int
+    + abandonedPassengers: int
+    + availableDrivers: int
+    + busyDrivers: int
+    + totalEarnings: double
+    + avgWaitTimeSec: double
+}
+
 ' ─── Config & Stats ───────────────────────────────────────────────
 class SimulationConfig {
     + driverCount: int
@@ -158,6 +174,8 @@ class SimulationStats {
     + averageTripDurationSeconds: double
     + averageFare: double
     + totalEarnings: double
+    + totalWaitTime: double
+    + totalTripTime: double
     --
     + getCancellationRate(): double
     + getCompletionRate(): double
@@ -218,6 +236,7 @@ class EdgeDto {
 ' ─── Services ─────────────────────────────────────────────────────
 class SimulationEngine <<@Component>> {
     - state: SimulationState
+    - history: List<TickSnapshot>
     --
     + start(config: SimulationConfig): void
     + tick(): void
@@ -225,6 +244,7 @@ class SimulationEngine <<@Component>> {
     + resume(): void
     + reset(): void
     + getState(): SimulationState
+    + getHistory(): List<TickSnapshot>
 }
 
 class SimulationTicker <<@Scheduled>> {
@@ -234,13 +254,23 @@ class SimulationTicker <<@Scheduled>> {
 class SpawnService <<@Service>> {
     + spawnDrivers(config: SimulationConfig): List<Driver>
     + spawnPassengers(config: SimulationConfig): List<Passenger>
-    + spawnOnePassenger(config: SimulationConfig): Passenger
+    - spawnOnePassenger(config: SimulationConfig): Passenger
 }
 
 class MatchingService <<@Service>> {
-    + findNearestDriver(passenger: Passenger, drivers: List<Driver>): Optional<Driver>
+    - matchingStrategy: MatchingStrategy
+    --
+    + findDriver(passenger: Passenger, drivers: List<Driver>): Optional<Driver>
     + createTrip(driver: Driver, passenger: Passenger, tick: int): Trip
     + matchAll(passengers: List<Passenger>, drivers: List<Driver>, tick: int): List<Trip>
+}
+
+class NearestDriverStrategy <<@Component>> {
+    + findDriver(passenger: Passenger, drivers: List<Driver>): Optional<Driver>
+}
+
+class RandomDriverStrategy <<@Component>> {
+    + findDriver(passenger: Passenger, drivers: List<Driver>): Optional<Driver>
 }
 
 class MovementService <<@Service>> {
@@ -264,6 +294,12 @@ class FailureDetector <<@Service>> {
     + detectAbandoned(passengers: List<Passenger>): List<Passenger>
 }
 
+' ─── Config Beans ─────────────────────────────────────────────────
+class SimulationBeanConfig <<@Configuration>> {
+    + simulationConfig(): SimulationConfig
+    + matchingStrategy(): MatchingStrategy   ' @Primary = NearestDriverStrategy
+}
+
 ' ─── Controllers ──────────────────────────────────────────────────
 class SimulationController <<@RestController>> {
     + getState(): SimulationState
@@ -272,6 +308,8 @@ class SimulationController <<@RestController>> {
     + stop(): SimulationState
     + resume(): SimulationState
     + reset(): SimulationState
+    + exportJson(): List<TickSnapshot>
+    + exportCsv(): String
 }
 
 class MapController <<@RestController>> {
@@ -280,7 +318,7 @@ class MapController <<@RestController>> {
 
 class SimulationWebSocketHandler <<@Component>> {
     - sessions: CopyOnWriteArraySet<Session>
-    + broadcast(state: SimulationState): void
+    + broadcast(json: String): void
 }
 
 ' ─── Inheritance ──────────────────────────────────────────────────
@@ -292,6 +330,9 @@ SimulationEntity <|-- Trip
 Stateful <|.. Driver
 Stateful <|.. Passenger
 Stateful <|.. Trip
+
+MatchingStrategy <|.. NearestDriverStrategy
+MatchingStrategy <|.. RandomDriverStrategy
 
 ' ─── Enum Associations ────────────────────────────────────────────
 Driver --> DriverStatus : status
@@ -319,6 +360,7 @@ MapDto "1" *-- "*" EdgeDto : edges
 
 ' ─── Service Dependencies ─────────────────────────────────────────
 SimulationEngine "1" *-- "1" SimulationState : state
+SimulationEngine "1" o-- "*" TickSnapshot : history
 SimulationEngine --> SpawnService
 SimulationEngine --> MatchingService
 SimulationEngine --> TripService
@@ -328,10 +370,14 @@ SimulationEngine --> FailureDetector
 SimulationTicker --> SimulationEngine
 SimulationTicker --> SimulationWebSocketHandler
 
+MatchingService o-- MatchingStrategy
 MatchingService --> MovementService
 TripService --> MovementService
 MovementService --> RoadGraph
 SpawnService --> RoadGraph
+
+SimulationBeanConfig ..> NearestDriverStrategy : @Primary
+SimulationBeanConfig ..> SimulationConfig : creates
 
 SimulationController --> SimulationEngine
 MapController --> RoadGraph
