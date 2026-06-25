@@ -2,6 +2,22 @@
 
 A full-stack Uber ride simulation. The Java backend handles all domain logic — matching, trips, pricing, and simulation state. The React + TypeScript frontend visualizes everything in real time.
 
+**Live demo:** [uber-simulation.vercel.app](https://uber-simulation.vercel.app/)
+
+## Features
+
+### Simulation Configuration
+
+Set up the simulation parameters before starting — number of drivers, passengers and more.
+
+> Video coming soon
+
+### Live Simulation View
+
+Watch drivers get matched to passengers in real time, with trip status updates and live map movement.
+
+> Video coming soon
+
 ## Architecture
 
 ```
@@ -154,6 +170,22 @@ git pull origin main --rebase    # sync your branch with latest main
 # Uber Simulation *(Polski)*
 
 Fullstackowa symulacja platformy Uber. Backend w Javie obsługuje całą logikę domenową — dopasowywanie kierowców, przejazdy, ceny i stan symulacji. Frontend w React + TypeScript wizualizuje wszystko w czasie rzeczywistym.
+
+**Demo na żywo:** [uber-simulation.vercel.app](https://uber-simulation.vercel.app/)
+
+## Funkcje
+
+### Konfiguracja symulacji
+
+Ustaw parametry symulacji przed uruchomieniem — liczba kierowców, pasażerów, granice obszaru i inne.
+
+> Film wkrótce
+
+### Widok symulacji na żywo
+
+Obserwuj dopasowywanie kierowców do pasażerów w czasie rzeczywistym, ze statusami przejazdów i ruchem na mapie.
+
+> Film wkrótce
 
 ## Architektura
 
