@@ -10,13 +10,13 @@ A full-stack Uber ride simulation. The Java backend handles all domain logic —
 
 Set up the simulation parameters before starting — number of drivers, passengers and more.
 
-> Video coming soon
+https://github.com/user-attachments/assets/2947291b-ca74-4856-9014-af350a66b0cb
 
 ### Live Simulation View
 
 Watch drivers get matched to passengers in real time, with trip status updates and live map movement.
 
-> Video coming soon
+https://github.com/user-attachments/assets/eae53e69-447f-40f8-8bc7-66c5e049ba6b
 
 ## Architecture
 
