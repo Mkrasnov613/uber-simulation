@@ -2,6 +2,7 @@ import { useState } from "react";
 import { COLORS } from "../../../theme";
 import { SimulationStatus } from "../../../types/statuses";
 import { HUD_WIDTH } from "../HudPanel/HudPanel.styled";
+import { post } from "../../../utils/post";
 import {
   BarRoot,
   ControlsRow,
@@ -15,10 +16,6 @@ import {
   StatusBarText,
   TickCounter,
 } from "./BottomBar.styled";
-
-const API = "http://localhost:8080/api/simulation";
-const post = (path: string) =>
-  fetch(`${API}/${path}`, { method: "POST" }).catch(() => {});
 
 const LEGEND = [
   { label: "Idle driver", color: COLORS.driverAvailable },

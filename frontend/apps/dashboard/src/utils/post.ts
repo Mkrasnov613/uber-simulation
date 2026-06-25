@@ -1,4 +1,6 @@
-const API = "http://localhost:8080/api/simulation";
+import { API_BASE } from "../config";
+
+const API = `${API_BASE}/simulation`;
 
 export const post = (path: string) =>
   fetch(`${API}/${path}`, { method: "POST" }).catch(() => {});

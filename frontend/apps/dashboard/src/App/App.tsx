@@ -7,6 +7,7 @@ import { SimulationSummary } from "../components/SimulationSummary/SimulationSum
 import { SimulationSetup } from "../components/SimulationSetup/SimulationSetup";
 import { useRoadMap } from "../hooks/useRoadMap";
 import { useSimulation } from "../hooks/useSimulation";
+import { WS_URL } from "../config";
 import { SimulationStatus } from "../types/statuses";
 import { AppRoot } from "./App.styled";
 
@@ -25,7 +26,7 @@ const App = () => {
     stats,
     driverList,
     activeTripsCount,
-  } = useSimulation({ url: "ws://localhost:8080/ws/state" });
+  } = useSimulation({ url: WS_URL });
 
   const [smooth, setSmooth] = useState(true);
   const [hudVisible, setHudVisible] = useState(true);
