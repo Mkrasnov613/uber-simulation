@@ -6,8 +6,6 @@ import {
   DriverListLabel,
   DriverListTitle,
   HUD_WIDTH,
-  LiveLabel,
-  OkBadge,
   PanelContainer,
   PanelHeader,
   PanelTitle,

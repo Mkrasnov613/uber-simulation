@@ -27,15 +27,6 @@ export const PanelHeader = styled.div`
   flex-shrink: 0;
 `;
 
-export const LiveLabel = styled.div`
-  color: ${COLORS.textMuted};
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  margin-bottom: 5px;
-`;
-
 export const PanelTitleRow = styled.div`
   display: flex;
   align-items: center;
@@ -46,16 +37,6 @@ export const PanelTitle = styled.span`
   color: ${COLORS.textPrimary};
   font-size: 13px;
   font-weight: 600;
-`;
-
-export const OkBadge = styled.div`
-  padding: 2px 7px;
-  border-radius: 3px;
-  background: rgba(52, 211, 153, 0.1);
-  color: ${COLORS.green};
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
 `;
 
 export const StatsWrapper = styled.div`
